@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>excel</title>
+    <script src="/{{ venv_name }}/static/js/jquery-1.12.4.min.js"></script>
+    <script src="/{{ venv_name }}/static/js/canvas-datagrid.js"></script>
+    <script src="/{{ venv_name }}/static/js/shim.js"></script>
+    <script src="/{{ venv_name }}/static/js/xlsx.full.min.js"></script>
+    <style type="text/css">
+        body {
+            display: flex;
+            flex-flow: row;
+        }
+        nav {
+            backgroud-color: #EEE;
+            overflow: auto;
+            flex: 1;
+            height: 800px;
+        }
+        article {
+            flex: 5;
+        }
+        a.excel {
+            font-size: 15px;
+            text-decoration: none;
+            padding: 4px 4px;
+            display: block;
+        }
+        li:hover {
+            background: #efefef;     
+        }
+        .sheet {
+            padding: 5px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        li {list-style-type:none;}
+    </style>
+</head>
+
+<body>
+    <nav id="excel_list">
+        {% for excel in excels %}
+            <li><a class="excel" href="#" type="button" url="/{{ venv_name }}/static/xls/{{ excel }}">{{ excel }}</a></li>
+        {% end %}
+    </nav>
+    <article>
+        <div id="sheet_list">
+        </div>
+        <div id="htmlout"><h3>Choose a workbook to view!</h3></div>
+    </article>
+    <script>
+    var NAV = document.getElementById('excel_list');
+    NAV.style.height = (window.innerHeight * 0.90) + "px";
+    
+    var last_workbook;
+    var datagrid;
+    var HTMLOUT = document.getElementById('htmlout');
+    function resize_datagrid() {
+        HTMLOUT.style.display = "block";
+        HTMLOUT.style.height = (window.innerHeight * 0.90) + "px";
+        HTMLOUT.style.width = (window.innerWidth * 0.90) + "px";
+
+        datagrid.style.height = '100%';
+        datagrid.style.width = '100%';
+    }
+    var render_workbook = (function() {
+        return function process_wb(workbook, sheetname = "") {
+            $("#htmlout").html("");
+            if (sheetname == "") {
+                $("#sheet_list").html("");
+                workbook.SheetNames.forEach(function(sheet_name) {
+                    console.log(sheet_name)
+                    $("#sheet_list").append('<input class="sheet" type="button" value="' + sheet_name + '">');　
+                });
+                // 默认输出第一张sheet
+                json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
+                datagrid = canvasDatagrid({ parentNode: HTMLOUT, data: json });
+                resize_datagrid();
+            } else {
+                for (var i = 0; i < workbook.SheetNames.length; ++i) {
+                    if (workbook.SheetNames[i] == sheetname) {
+                        json = XLSX.utils.sheet_to_json(workbook.Sheets[sheetname], { header: 1 });
+                        datagrid = canvasDatagrid({ parentNode: HTMLOUT, data: json });
+                        resize_datagrid();
+                    }
+                }
+            }
+        };
+    })();
+
+    $("#excel_list").on("click", ".excel", function() {
+        var url = $(this).attr("url");
+        /* set up async GET request */
+        var req = new XMLHttpRequest();
+        req.open("GET", url, true);
+        req.responseType = "arraybuffer";
+        req.onload = function(e) {
+            // response is unsigned 8 bit integer
+            var data = new Uint8Array(this.response);
+            last_workbook = XLSX.read(data, { type: "array" });
+            /* DO SOMETHING WITH workbook HERE */
+            render_workbook(last_workbook);
+        }
+        req.send();
+    });
+    $("#sheet_list").on("click", ".sheet", function() {
+        var sheetname = $(this).val();
+        console.log("select sheet: " + sheetname)
+        render_workbook(last_workbook, sheetname);
+    });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,43 @@
+{% include header.tpl %}
+<div id="main_container" class="container">
+    <div class="hidden alert alert-danger alert-dismissible advertisement" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
+        <h5><strong>重要提示</strong>：您当前处于外网正式环境（IDC），请务必谨慎操作！</h5>
+    </div>
+    <div class="row row-offcanvas row-offcanvas-left">
+        <div id="sidebar" class="col-xs-6 col-sm-3 col-md-2 sidebar-offcanvas">
+            <!-- Tab navs -->
+            <ul class="nav nav-pills nav-stacked text-center" role="tablist">
+                {% set count = 0 %}
+                {% for tab_name, tab in tabs.items() %}
+                    <li {% if count == 0 %} class="active" {% end %}>
+                        <a class="{{ tab_name }}" href="#{{ tab_name }}" aria-controls="{{ tab_name }}" role="tab" data-toggle="tab">
+                            {{ tab['desc'] }}
+                        </a>
+                    </li>
+                {% set count = count + 1 %}
+                {% end %}
+            </ul>
+        </div>
+        <div class="col-xs-12 col-sm-9 col-md-10">
+            <!-- Tab panes -->
+            <div id="tab_body" class="tab-content">
+                {% set count = 0 %}
+                {% for tab_name, tab in tabs.items() %}
+                <div role="tabpanel" class="tab-pane {% if count == 0 %} active {% end %} original-card-tabpanel" id="{{ tab_name }}">
+                    {% if tab_name.endswith("editor") %}
+                    <div class="row editor-container">
+                            <div id="{{ tab_name }}" class="col-xs-12 col-sm-12 col-md-12 item jsoneditor"> </div>
+                    </div>
+                    {% end %}
+                    <div class="row cards-container masonry-container">
+                        {% include cards.tpl %}
+                    </div>
+                </div>
+                {% set count = count + 1 %}
+                {% end %}
+            </div>
+        </div>
+    </div>
+</div>
+{% include footer.tpl %}
