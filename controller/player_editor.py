@@ -1,3 +1,5 @@
+# coding=utf-8
+
 '''编辑器'''
 __priority__ = 0
 

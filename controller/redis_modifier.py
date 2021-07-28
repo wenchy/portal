@@ -1,3 +1,4 @@
+# coding=utf-8
 '''Redis'''
 __priority__ = 200
 

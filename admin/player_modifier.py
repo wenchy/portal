@@ -1,3 +1,5 @@
+# coding=utf-8
+
 '''玩家'''
 __priority__ = 999
 
@@ -15,7 +17,7 @@ def manage_whilelist(__uid__, __env__, whitelist_type, content, operate_type):
                 "input": "select",
                 "options": {
                      "normal": "限号白名单",
-                     "friend": "内部白名单",
+                     "inernal": "内部白名单",
                      "advanced": "高级白名单"
                 }
             },

@@ -1,3 +1,5 @@
+# coding:utf-8
+
 # @brief    a pluggable N-level authentication module.
 # @version  1.0
 # @depend   
@@ -47,7 +49,12 @@ def auth_basic(handler):
     # Keep in mind that either username or password could
     # still be unset, and that you should check to make sure
     # they reflect valid credentials!
-    auth_decoded = base64.decodebytes(bytes(auth_header[6:], 'utf-8'))
+    if hasattr(base64, 'decodebytes'):
+        # python3
+        auth_decoded = base64.decodebytes(bytes(auth_header[6:], 'utf-8'))
+    else:
+        # python2
+        auth_decoded = base64.decodestring(auth_header[6:])
     username, password = auth_decoded.decode("utf-8").split(':', 2)
 
     # todo: actually verify provided credentials :-)
