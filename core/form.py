@@ -2,7 +2,6 @@ import json
 import inspect
 import collections
 from core.logger import log
-from core import kwargs
 import config
 import traceback
 
@@ -126,21 +125,3 @@ def html_form(func):
     func.__html_form__ = ordered_form
     # log.debug(str(ordered_form))
     return func
-
-
-def exist_json_func(pattern):
-    """pattern: ${module_name}.{func_name}"""
-    if (
-        (type(pattern) == str)
-        and pattern.startswith("$")
-        and len(pattern.split(".")) == 2
-    ):
-        return True
-    return False
-
-
-def call_json_func(pattern):
-    """pattern: ${module_name}.{func_name}"""
-    module_name, func_name = tuple(pattern.split("."))
-    module_dict = {"$kwargs": kwargs}
-    return getattr(module_dict[module_name], func_name)()

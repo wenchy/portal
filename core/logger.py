@@ -1,10 +1,6 @@
-#!/usr/bin/python
-# coding:utf-8
-
-# @brief    a multi-process safe logger.
-# @version  0.2
-# @author   wenchyzhu(wenchyzhu@gmail.com)
-# @created  2023-11-21
+"""
+A multi-process safe logger.
+"""
 
 import logging
 import logging.handlers

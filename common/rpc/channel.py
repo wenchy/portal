@@ -18,7 +18,7 @@ class Singleton(type):
 
 class HTTPConnectionPoolManager(object):
     """
-    Note(wenchyzhu):
+    Note:
     A singleton for managing HTTP connection pool.
     Keep-alive and HTTP connection pooling are 100% automatic, thanks to urllib3.
     """

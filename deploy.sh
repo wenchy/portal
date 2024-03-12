@@ -1,9 +1,4 @@
 #!/bin/bash
-########################################################
-### @brief    deploy portal
-### @author   wenchyzhu(wenchyzhu@gmail.com)
-### @date     2024-01-07
-########################################################
 
 set -e
 
@@ -32,7 +27,7 @@ function Usage() {
 ROOT_DIR=$(git rev-parse --show-toplevel)
 
 function GenProtobuf() {
-    cd ${ROOT_DIR}/tools/portal
+    cd ${ROOT_DIR}
     ./scripts/genpb.sh
     echo "generate protobuf for python"
 }
@@ -41,7 +36,7 @@ function GenLocal() {
     echo ${LOCAL_PATH}
     rm -rf $LOCAL_PATH
     mkdir -p $LOCAL_PATH
-    rsync -avz $ROOT_DIR/tools/portal/* ${LOCAL_PATH}/ --delete
+    rsync -avz $ROOT_DIR/* ${LOCAL_PATH}/ --delete
 }
 
 function GenVersionInfo() {
@@ -65,7 +60,7 @@ function GenAll() {
 }
 
 function TarTgz() {
-    cd $ROOT_DIR/tools/.tmp/
+    cd $ROOT_DIR/.tmp/
     if [ -x "$(command -v pigz)" ]; then
         echo "--use-compress-program=pigz"
         tar cavfh - ${DEPLOY_NAME} | pigz >${TGZ_NAME}
@@ -134,7 +129,7 @@ fi
 
 # set common variables
 DEPLOY_NAME=${DEPLOY_ENV}_portal
-LOCAL_PATH="${ROOT_DIR}/tools/.tmp/${DEPLOY_NAME}"
+LOCAL_PATH="${ROOT_DIR}/.tmp/${DEPLOY_NAME}"
 DEST_PATH="/data/user00/tornado/${DEPLOY_NAME}"
 DEST_IP="127.0.0.1"
 
