@@ -1,7 +1,9 @@
 # Portal
-A simple yet powerful GM (Game Maker) mirco-framework.
+
+A simple yet powerful Python3 mirco-framework for GM (Game Maker).
 
 ## Requirements
+
 - python3: `yum install python39`
 - python-dev: `yum install python39-devel`
 - tornado: `python3 -m pip install tornado`
@@ -14,6 +16,7 @@ Optional:
 - Install gRPC: `python3 -m pip install grpcio`
 
 ## Nginx config
+
 reverse proxy
 ```
 location / {

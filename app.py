@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-
 """
 SYNOPSIS
     ./app.py [mode] [env]
@@ -12,9 +10,9 @@ DESCRIPTION
 
 DEMONSTRATION
 
-    ./app.py
-    ./app.py singleprocess dev
-    ./app.py multiprocess test
+    python3 app.py
+    python3 app.py singleprocess dev
+    python3 app.py multiprocess test
 """
 
 import collections
