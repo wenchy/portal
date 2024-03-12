@@ -1,26 +1,19 @@
 /*
- *   File name: pro_index.css
- *  Created on: 2017-01-23
- * Modified on:
- *      Author: wenchyzhu
- *     Version: v0.1
- *       Brief: LuckyFish后台测试工具Pro版
- *
- */
-
-/*
  * Style tweaks
  * --------------------------------------------------
  */
 html,
 body {
-  overflow-x: hidden; /* Prevent scroll on narrow devices */
+    overflow-x: hidden;
+    /* Prevent scroll on narrow devices */
 }
+
 body {
-  padding-top: 70px;
+    padding-top: 70px;
 }
+
 footer {
-  padding: 30px 0;
+    padding: 30px 0;
 }
 
 /*
@@ -28,44 +21,47 @@ footer {
  * --------------------------------------------------
  */
 @media screen and (max-width: 767px) {
-  .row-offcanvas {
-    position: relative;
-    -webkit-transition: all .25s ease-out;
-         -o-transition: all .25s ease-out;
-            transition: all .25s ease-out;
-  }
+    .row-offcanvas {
+        position: relative;
+        -webkit-transition: all .25s ease-out;
+        -o-transition: all .25s ease-out;
+        transition: all .25s ease-out;
+    }
 
-  .row-offcanvas-right {
-    right: 0;
-  }
+    .row-offcanvas-right {
+        right: 0;
+    }
 
-  .row-offcanvas-left {
-    left: 0;
-  }
+    .row-offcanvas-left {
+        left: 0;
+    }
 
-  .row-offcanvas-right
-  .sidebar-offcanvas {
-    right: -50%; /* 6 columns */
-  }
+    .row-offcanvas-right .sidebar-offcanvas {
+        right: -50%;
+        /* 6 columns */
+    }
 
-  .row-offcanvas-left
-  .sidebar-offcanvas {
-    left: -50%; /* 6 columns */
-  }
+    .row-offcanvas-left .sidebar-offcanvas {
+        left: -50%;
+        /* 6 columns */
+    }
 
-  .row-offcanvas-right.active {
-    right: 50%; /* 6 columns */
-  }
+    .row-offcanvas-right.active {
+        right: 50%;
+        /* 6 columns */
+    }
 
-  .row-offcanvas-left.active {
-    left: 50%; /* 6 columns */
-  }
+    .row-offcanvas-left.active {
+        left: 50%;
+        /* 6 columns */
+    }
 
-  .sidebar-offcanvas {
-    position: absolute;
-    top: 0;
-    width: 50%; /* 6 columns */
-  }
+    .sidebar-offcanvas {
+        position: absolute;
+        top: 0;
+        width: 50%;
+        /* 6 columns */
+    }
 }
 
 /*
@@ -73,77 +69,82 @@ footer {
  * --------------------------------------------------
  */
 .dropdown-submenu {
-  position: relative;
+    position: relative;
 }
 
 .dropdown-submenu>.dropdown-menu {
-  top: 0;
-  left: 100%;
-  margin-top: -6px;
-  margin-left: -1px;
-  -webkit-border-radius: 0 6px 6px 6px;
-  -moz-border-radius: 0 6px 6px;
-  border-radius: 0 6px 6px 6px;
+    top: 0;
+    left: 100%;
+    margin-top: -6px;
+    margin-left: -1px;
+    -webkit-border-radius: 0 6px 6px 6px;
+    -moz-border-radius: 0 6px 6px;
+    border-radius: 0 6px 6px 6px;
 }
 
 .dropdown-submenu:hover>.dropdown-menu {
-  display: block;
+    display: block;
 }
 
 .dropdown-submenu>a:after {
-  display: block;
-  content: " ";
-  float: right;
-  width: 0;
-  height: 0;
-  border-color: transparent;
-  border-style: solid;
-  border-width: 5px 0 5px 5px;
-  border-left-color: #ccc;
-  margin-top: 5px;
-  margin-right: -10px;
+    display: block;
+    content: " ";
+    float: right;
+    width: 0;
+    height: 0;
+    border-color: transparent;
+    border-style: solid;
+    border-width: 5px 0 5px 5px;
+    border-left-color: #ccc;
+    margin-top: 5px;
+    margin-right: -10px;
 }
 
 .dropdown-submenu:hover>a:after {
-  border-left-color: #fff;
+    border-left-color: #fff;
 }
 
 .dropdown-submenu.pull-left {
-  float: none;
+    float: none;
 }
 
 .dropdown-submenu.pull-left>.dropdown-menu {
-  left: -100%;
-  margin-left: 10px;
-  -webkit-border-radius: 6px 0 6px 6px;
-  -moz-border-radius: 6px 0 6px 6px;
-  border-radius: 6px 0 6px 6px;
+    left: -100%;
+    margin-left: 10px;
+    -webkit-border-radius: 6px 0 6px 6px;
+    -moz-border-radius: 6px 0 6px 6px;
+    border-radius: 6px 0 6px 6px;
 }
 
 /* Custom styles */
- body {
- 	font-family: 'Helvetica Neue', 'Helvetica', 'Tahoma', 'Arial', 'Microsoft Yahei', '微软雅黑', 'Hiragino Sans GB', 'PingFang SC', STHeiTi, sans-serif !important;
- }
+body {
+    font-family: 'Helvetica Neue', 'Helvetica', 'Tahoma', 'Arial', 'Microsoft Yahei', '微软雅黑', 'Hiragino Sans GB', 'PingFang SC', STHeiTi, sans-serif !important;
+}
 
 /*#main_container {
     margin-top: 70px !important;
 }*/
 
-.nav-pills>li.active>a, .nav-pills>li.active>a:focus, .nav-pills>li.active>a:hover {
+.nav-pills>li.active>a,
+.nav-pills>li.active>a:focus,
+.nav-pills>li.active>a:hover {
     color: #fff;
     font-weight: bold;
     background-color: rgba(4, 18, 27, 0.88);
     border-radius: 0px !important;
 }
+
 .nav-pills li>a {
-	color: #333;
-	font-size: 16px;
-	
+    color: #333;
+    font-size: 16px;
+
 }
-#main_container .nav-pills li{
-	border-bottom: 1px solid #ccc;
-	margin-top: 0px;
+
+#main_container .nav-pills li {
+    border-bottom: 1px solid #ccc;
+    margin-top: 0px;
 }
+
 #main_container .nav {
     border: 1px solid rgba(4, 18, 27, 0.88);
 }
@@ -153,128 +154,94 @@ footer {
 }
 
 .masonry-container>div.item {
-	padding-left: 10px;
-	padding-right: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
 }
 
 .form-group {
     margin-bottom: 5px !important;
 }
 
-.form-group-sm .col-sm-4, .form-group-sm .col-sm-8 {
-	padding-right: 10px !important;
-  padding-left: 10px !important;
+.form-group-sm .col-sm-4,
+.form-group-sm .col-sm-8 {
+    padding-right: 10px !important;
+    padding-left: 10px !important;
 }
 
- .panel-title {
-  font-size: 14px !important;
+.panel-title {
+    font-size: 14px !important;
 }
+
 .panel-body {
-  padding: 10px 15px !important;
+    padding: 10px 15px !important;
 }
+
 textarea {
-	white-space: nowrap;
-	overflow: auto;
+    white-space: nowrap;
+    overflow: auto;
 }
 
 #sidebar .nav {
-	box-shadow: 4px 4px 20px #333333;
-  margin-bottom: 10px;
-}
-
-/* chat pannel */
-#ChatPanel {
-  z-index: 1000;
-  left: 2px;
-  top: 70px;
-  height: 500px;
-  margin-bottom: 0px;
-  position: fixed;
-  box-shadow: -2px -2px 20px #666;
-  border: 0 !important;
-}
-
-#ChatPanel > #ChatPanelBody {
-  width: 300px; 
-  height: 500px;
-  padding: 0 !important;
-  border: 0 !important;
-}
-
-#ChatPanelBody > #ChatOutputEditor {
-  width: 300px !important; 
-  height: 380px !important;
-}
-
-#ChatPanelBody > #ChatOutputEditor > .ql-editor {
-  width: 300px !important; 
-  height: 380px !important;
-  overflow: auto !important;
-}
-
-#ChatPanelBody > .ql-toolbar {
-  height: 40px !important;
-}
-
-#ChatPanelBody > #ChatInputEditor {
-  width: 300px !important; 
-  height: 80px !important;
-  overflow: auto !important;
+    box-shadow: 4px 4px 20px #333333;
+    margin-bottom: 10px;
 }
 
 /* batch pannel */
 #BatchPanel {
-  z-index: 1000;
-  right: 2px;
-  top: 70px;
-  position: fixed;
-  box-shadow: -2px -2px 20px #666;
+    z-index: 1000;
+    right: 2px;
+    top: 70px;
+    position: fixed;
+    box-shadow: -2px -2px 20px #666;
 }
 
 /* common result pannel */
 #commonResultPanel {
-	z-index: 1000;
-	right: 2px;
-	bottom: 2px;
-	margin-bottom: 0px;
-	position: fixed;
-	box-shadow: -2px -2px 20px #666;
-  border: none;
+    z-index: 1000;
+    right: 2px;
+    bottom: 2px;
+    margin-bottom: 0px;
+    position: fixed;
+    box-shadow: -2px -2px 20px #666;
+    border: none;
 }
-#commonResultPanel > .panel-footer {
-	color: #fff;
-	background-color: #870401;  /* #3b4045 */
-	cursor: pointer;
-  border: none;
-	/* border-top: 1px solid #3b4045; */
+
+#commonResultPanel>.panel-footer {
+    color: #fff;
+    background-color: #870401;
+    /* #3b4045 */
+    cursor: pointer;
+    border: none;
+    /* border-top: 1px solid #3b4045; */
 }
 
 div#commonResultMsg {
-	font-size: 12px !important;
-	width: 300px; 
-	height: 240px;
-  padding: 0 !important;
-  border: 0 !important;
+    font-size: 12px !important;
+    width: 300px;
+    height: 240px;
+    padding: 0 !important;
+    border: 0 !important;
 }
 
 div#commonResultMsg pre {
-	font-size: 12px !important;
-	overflow: auto; 
-	width: 300px; 
-	height: 240px;
-  padding: 0px 5px;
-  border: none;
-  border-radius: 0px;
+    font-size: 12px !important;
+    overflow: auto;
+    width: 300px;
+    height: 240px;
+    padding: 0px 5px;
+    border: none;
+    border-radius: 0px;
 }
 
-div.item>.panel{
-	box-shadow: 1px 1px 4px #333333;
-  /* border: none; */
+div.item>.panel {
+    box-shadow: 1px 1px 4px #333333;
+    /* border: none; */
 }
 
-div.item>.panel-danger{
+div.item>.panel-danger {
     border-color: #b95555;
 }
+
 div.item>.panel-danger>.panel-heading {
     color: #ffffff;
     background-color: #b95555;
@@ -282,27 +249,33 @@ div.item>.panel-danger>.panel-heading {
 }
 
 #g_env {
-  min-width: 100px;
-	max-width: 250px;
+    min-width: 100px;
+    max-width: 250px;
 }
-#search-keyword, #g_uid {
-  min-width: 100px;
-  max-width: 140px;
+
+#g_uid {
+    min-width: 200px;
+    max-width: 250px;
+}
+
+#search-keyword {
+    min-width: 100px;
+    max-width: 140px;
 }
 
 div.info-tip {
-  margin-top: 5px;
+    margin-top: 5px;
 }
 
 .tab-pane div.editor-container {
-  margin-bottom: 15px;
+    margin-bottom: 15px;
 }
 
 .tab-pane div.editor-container .jsoneditor {
-  height: 660px;
+    height: 660px;
 }
 
 .form_group_margin {
-  margin-right: -13px !important;
-  margin-left: -13px !important;
+    margin-right: -13px !important;
+    margin-left: -13px !important;
 }

@@ -36,13 +36,16 @@
                     popup="{{ func['popup'] }}"
                 {% end %}
             >
-                <input type="hidden" name="__module_name__" value="{{ tab['module_name'] }}" />
-                <input type="hidden" name="__func_name__" value="{{ func_name }}" />
-                <input type="hidden" name="__account_type__" value=""> 
+                <input type="hidden" name="_module" value="{{ tab['module_name'] }}" />
+                <input type="hidden" name="_func" value="{{ func_name }}" />
+                <input type="hidden" name="_type" value=""> 
 
                 {% for arg_name, arg in func['args'].items() %}
-                    {% if arg_name in ["__uid__", "__env__", "__jsoneditor_content__"] %}
+                    {% if arg_name in ["_jsoneditor_content"] %}
                         <input type="hidden" name="{{ arg_name }}" value="" />
+                     {% elif arg_name in ["_ctx"] %}
+                        <input type="hidden" name="_uid" value="" />
+                        <input type="hidden" name="_zone" value="" />
                     {% else %}
 
                         {% if func['layout'] == '6-column' %}

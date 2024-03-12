@@ -19,11 +19,6 @@
       <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
-    <!-- select2 -->
-    <!-- <link href="/{{ venv_name }}/static/css/select2.min.css" rel="stylesheet"> -->
-    <!-- quill editor -->
-    <link href="/{{ venv_name }}/static/quill/quill.snow.css" rel="stylesheet">
-    <link href="/{{ venv_name }}/static/quill/quill.bubble.css" rel="stylesheet">
     <link href="/{{ venv_name }}/static/css/index.css" rel="stylesheet">
 </head>
 
@@ -61,7 +56,7 @@
 
                             {% if venv_name == 'idc' %}
                                <!--  IDC区太多了，支持输入 -->
-                                <input list="zonelist" class="form-control" name="g_env" id="g_env" onChange="updateEnvAddr()" type="text"  placeholder="zoneid" value="0" data-toggle="tooltip" data-placement="bottom" title="请输入zoneid">
+                                <input list="zonelist" class="form-control" name="g_zone" id="g_zone" onChange="updateZone()" type="text"  placeholder="zoneid" value="0" data-toggle="tooltip" data-placement="bottom" title="请输入zoneid">
                                 <datalist id="zonelist">
                                     {% for zone_id, zone_conf in zones.items() %}
                                         <option value="{{ zone_id }}">{{ zone_conf['desc'] }}</option>
@@ -69,14 +64,14 @@
                                 </datalist>
                             {% else %}
                                 <!--  开发测试等区数量有限，使用select，方便操作 -->
-                                <select class="form-control" name="g_env" id="g_env" onChange="updateEnvAddr()">
+                                <select class="form-control" name="g_zone" id="g_zone" onChange="updateZone()">
                                     {% for zone_id, zone_conf in zones.items() %}
                                         <option value="{{ zone_id }}">{{ zone_conf['desc'] }}</option>
                                     {% end %}
                                 </select>
                             {% end %}
 
-                            <input list="uidlist" class="form-control" name="g_uid" id="g_uid" onChange="updateUID()" type="text"  placeholder="uid" value="0" data-toggle="tooltip" data-placement="bottom" title="请输入ruid">
+                            <input list="uidlist" class="form-control" name="g_uid" id="g_uid" onChange="updateUID()" type="text"  placeholder="uid" value="0" data-toggle="tooltip" data-placement="bottom" title="请输入uid">
                             <datalist id="uidlist"></datalist>
                         </div>
                     </div>
@@ -112,8 +107,8 @@
                                 <li role="separator" class="divider"></li>
                                 <li>
                                     <a href="#" data-toggle="collapse" data-target="#ChatPanel" aria-expanded="false" aria-controls="ChatPanel">
-                                        聊天室
-                                        <span class="glyphicon glyphicon-comment" aria-hidden="false" title="chat room"></span>
+                                        TODO
+                                        <span class="glyphicon glyphicon-comment" aria-hidden="false" title="TODO"></span>
                                     </a>
                                 </li>
                             </ul>
@@ -123,8 +118,14 @@
                             更多<span class="caret"></span>
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a href="/{{ venv_name }}/admin/list" target="_blank">高级功能</a></li>
-                                <li><a href="/{{ venv_name }}/excel/list" target="_blank">策划配置</a></li>
+                                <li><a href="/{{ venv_name }}/admin/list" target="_blank">管理员</a></li>
+                                <li class="dropdown-submenu">
+                                    <a href="#">phpMyAdmin</a>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="http://wonderwall.club/nova/dev/phpmyadmin" target="_blank">dev</a></li>
+                                        <li><a href="https://minilarva.com/nova/test/phpmyadmin" target="_blank">test</a></li>
+                                    </ul>
+                                </li>
                                 <li class="dropdown-submenu">
                                     <a href="#">Prometheus</a>
                                     <ul class="dropdown-menu">

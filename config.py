@@ -1,27 +1,150 @@
-#coding=utf-8
 import collections
 
-LINE100 = 'line100'
+REDIS_PORT = 16379
+REDIS_PASSWORD = "redispw"
 
-REDIS_PORT = 9391
-REDIS_PASSWORD = 'Ztgame#321'
+DEV_NODES = {
+    "zonesvr": {
+        "1.0.1.1": "172.16.0.9:10101",
+        "1.0.1.2": "172.16.0.9:10101",
+    },
+    "mailsvr": {
+        "1.0.4.1": "172.16.0.9:10401",
+        "1.0.4.2": "172.16.0.9:10402",
+    },
+}
 
-ENVS = collections.OrderedDict([
-    ('dev',   {'desc': 'dev', 'redirection': 'idcnet',   'pcl': {'ip': '9.140.184.182',  'port': 12345}, 'redis': {'ip': '9.140.184.182',    'port': REDIS_PORT,  'passwd': REDIS_PASSWORD}, 'zk': {'hosts': '100.117.68.137:2181', 'root': '/ZK_LINE100_DB'}}),
-    ('test',    {'desc': 'test', 'redirection': 'idcnet', 'pcl': {'ip': '9.140.186.69',  'port': 12345}, 'redis': {'ip': '9.140.186.69',    'port': REDIS_PORT,  'passwd': REDIS_PASSWORD}, 'zk': {'hosts': '100.117.68.137:2181', 'root': '/ZK_LINE100_TEST'}}),
-])
+TEST_NODES = {
+    "zonesvr": {
+        "2.0.1.1": "172.16.0.9:20101",
+        "2.0.1.2": "172.16.0.9:20101",
+    },
+    "mailsvr": {
+        "2.0.4.1": "172.16.0.9:20401",
+        "2.0.4.2": "172.16.0.9:20402",
+    },
+}
 
+AUDIT_NODES = {
+    "zonesvr": {
+        "1.0.1.1": "172.16.0.21:10101",
+        "1.0.1.2": "172.16.0.21:10101",
+    },
+    "mailsvr": {
+        "1.0.4.1": "172.16.0.21:10401",
+        "1.0.4.2": "172.16.0.21:10402",
+    },
+}
 
+PRE_NODES = {
+    "zonesvr": {
+        "2.0.1.1": "172.16.0.21:20101",
+        "2.0.1.2": "172.16.0.21:20101",
+    },
+    "mailsvr": {
+        "2.0.4.1": "172.16.0.21:20401",
+        "2.0.4.2": "172.16.0.21:20402",
+    },
+}
+
+MINI_NODES = {
+    "zonesvr": {
+        "1.0.1.1": "172.16.0.2:10101",
+        "1.0.1.2": "172.16.0.12:10102",
+        "1.0.1.3": "172.16.0.46:10103",
+    },
+    "mailsvr": {
+        "1.0.4.1": "172.16.0.2:10401",
+        "1.0.4.2": "172.16.0.12:10402",
+        "1.0.4.3": "172.16.0.46:10403",
+    },
+}
+
+ENVS = collections.OrderedDict(
+    [
+        (
+            "dev",
+            {
+                "desc": "dev",
+                "redirection": "dev",
+                "gate": {"ip": "127.0.0.1", "port": 8080},
+                "nodes": DEV_NODES,
+                "redis": {
+                    "host": "127.0.0.1",
+                    "port": REDIS_PORT,
+                    "passwd": REDIS_PASSWORD,
+                },
+            },
+        ),
+        (
+            "test",
+            {
+                "desc": "test",
+                "redirection": "test",
+                "gate": {"ip": "127.0.0.1", "port": 8080},
+                "nodes": TEST_NODES,
+                "redis": {
+                    "host": "127.0.0.1",
+                    "port": REDIS_PORT,
+                    "passwd": REDIS_PASSWORD,
+                },
+            },
+        ),
+        (
+            "pre",
+            {
+                "desc": "pre",
+                "redirection": "pre",
+                "gate": {"ip": "127.0.0.1", "port": 8080},
+                "nodes": PRE_NODES,
+                "redis": {
+                    "host": "172.16.0.21",
+                    "port": REDIS_PORT,
+                    "passwd": REDIS_PASSWORD,
+                },
+            },
+        ),
+        (
+            "audit",
+            {
+                "desc": "audit",
+                "redirection": "audit",
+                "gate": {"ip": "127.0.0.1", "port": 8080},
+                "nodes": AUDIT_NODES,
+                "redis": {
+                    "host": "172.16.0.21",
+                    "port": REDIS_PORT,
+                    "passwd": REDIS_PASSWORD,
+                },
+            },
+        ),
+        (
+            "mini",
+            {
+                "desc": "mini",
+                "redirection": "idcnet",
+                "gate": {"ip": "127.0.0.1", "port": 8080},
+                "nodes": MINI_NODES,
+                "redis": {
+                    "host": "172.16.0.26",
+                    "port": REDIS_PORT,
+                    "passwd": REDIS_PASSWORD,
+                },
+            },
+        ),
+    ]
+)
 
 # auto insert name
 for name, value in ENVS.items():
-        value['name'] = name
+    value["name"] = name
 
 WORLDS = {
-    'WX' : 1,
-    'QQ' : 2,
-    'dev': 7,
+    "WX": 1,
+    "QQ": 2,
+    "dev": 7,
 }
+
 
 def zoneid(world, zone):
     # world:3.zone:13.function:6.instance:10
@@ -32,58 +155,107 @@ def zoneid(world, zone):
     # zone: max 8191 (2 ** 13 - 1)
     return (world << 13) + zone
 
-ZONES = collections.OrderedDict([
-    (zoneid(7, 101),      {'desc': 'dev',    'env':   ENVS['dev']}),
-    (zoneid(7, 200),      {'desc': 'test',    'env':   ENVS['test']}),
- ])
+
+def get_world(zoneid: int):
+    return zoneid >> 13
+
+
+def get_zone(zoneid: int):
+    return zoneid & 0x1FFF
+
+
+ZONES = collections.OrderedDict(
+    [
+        (zoneid(7, 1), {"desc": "dev", "env": ENVS["dev"]}),
+        (zoneid(7, 2), {"desc": "test", "env": ENVS["test"]}),
+        (zoneid(7, 3), {"desc": "pre", "env": ENVS["pre"]}),
+        (zoneid(7, 4), {"desc": "audit", "env": ENVS["audit"]}),
+        (zoneid(7, 11), {"desc": "mini", "env": ENVS["mini"]}),
+    ]
+)
 
 AUTHS = {
-    'apis': {
+    "apis": {
         # APPID -> APPKEY
         # APPKEY generated by: echo "$(date) + $appid"  | md5sum
-        'test': '9cdaccb0f61a66ac70cfd5256cd8960b'
+        "mini": "9cdaccb0f61a66ac70cfd5256cd8960b"
     },
-
-    'basics': [
+    "basics": [
         # 测试组
-        'wenchy',
+        "nova2023",
     ],
-
-    'admins': [
+    "admins": [
         # 运营组
         # 后台组
-        'wenchy',
+        "nova2023admin",
         # 前台组
     ],
 }
 
-# VENV_NAME = 'unknown' # default
-VENV_NAME = 'dev' # default
+VENV_NAME = "unknown"  # will be replaced to real env by deploy.sh
 
 # 部署环境配置: Virtual ENVironmentS
 # 此命名原因: 一个venv映射多个env, 以利于弹性部署
 # 部署目录: user00用户home目录下的`~/tornado`
-VENVS = collections.OrderedDict([
-    ("dev环境", collections.OrderedDict([
-        ('dev', {'desc': '开发环境', 'path': 'dev', 'envs': ['dev', 'test'], 'port': 8001, 'auth': {'controller': 'basic', 'admin': 'admin'}, 'domain': 'http://xxx.com'}),
-        ('lab', {'desc': '实验环境', 'path': 'lab', 'envs': ['dev', 'test'], 'port': 8002, 'auth': {'controller': 'basic', 'admin': 'admin'}, 'domain': 'http://xxx.com'}),
-    ])),
+VENVS = collections.OrderedDict(
+    [
+        (
+            "内网环境",
+            collections.OrderedDict(
+                [
+                    (
+                        "dev",
+                        {
+                            "desc": "开发环境",
+                            "path": "dev",
+                            "envs": ["dev"],
+                            "port": 8001,
+                            "auth": {"controller": "basic", "admin": "admin"},
+                            "domain": "https://wonderwall.club",
+                        },
+                    ),
+                    (
+                        "test",
+                        {
+                            "desc": "测试环境",
+                            "path": "test",
+                            "envs": ["test", "pre", "audit"],
+                            "port": 8002,
+                            "auth": {"controller": "basic", "admin": "admin"},
+                            "domain": "https://minilarva.com",
+                        },
+                    ),
+                ]
+            ),
+        ),
+        (
+            "外网环境",
+            collections.OrderedDict(
+                [
+                    (
+                        "mini",
+                        {
+                            "desc": "mini环境",
+                            "path": "mini",
+                            "envs": ["mini"],
+                            "port": 9001,
+                            "auth": {"controller": "basic", "admin": "admin"},
+                            "domain": "http://xxx.com",
+                        },
+                    ),
+                ]
+            ),
+        ),
+    ]
+)
 
-    ("idc环境", collections.OrderedDict([
-        ('idcnet', {'desc': 'IDC环境', 'path': 'idcnet', 'envs': ['test'], 'port': 9001, 'auth': {'controller': 'basic', 'admin': 'admin'}, 'domain': 'http://xxx.com'}),
-        # ('line100_test', {'desc': LINE100+'测试', 'path': 'line100_test', 'envs': ['line100_test'], 'port': 8997, 'auth': {'controller': 'test', 'admin': 'admin'}, 'domain': 'http://xxx.com'}),
-    ])),
-
-    # ("其它环境", collections.OrderedDict([
-    #     ('audit', {'desc': '审核环境', 'path': 'audit', 'envs': ['audit'], 'port': 8988, 'auth': {'controller': 'test', 'admin': 'admin'}, 'domain': 'http://xxx.com'}),
-    # ])),
-])
 
 def help():
     for key, venvs in VENVS.items():
-        print(key + ': ')
+        print(key + ": ")
         for name, venv in venvs.items():
-            print(name + ': ' + venv['desc'])
+            print(name + ": " + venv["desc"])
+
 
 def get_venv(venv_name):
     for _, venvs in VENVS.items():
@@ -91,19 +263,21 @@ def get_venv(venv_name):
             if name == venv_name:
                 return venv
 
+
 def filter_zones(deployed_env):
     if deployed_env:
         zones = collections.OrderedDict()
         for zone_id, item in ZONES.items():
-            if item['env']['name'] in deployed_env['envs']:
+            if item["env"]["name"] in deployed_env["envs"]:
                 zones[zone_id] = item
         return zones
+
 
 DEPLOYED_ENV = get_venv(VENV_NAME)
 DEPLOYED_ZONES = filter_zones(DEPLOYED_ENV)
 
 
 def is_devnet():
-    if VENV_NAME in ['lab', 'dev']:
+    if VENV_NAME in ["lab", "dev"]:
         return True
     return False

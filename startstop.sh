@@ -1,27 +1,23 @@
 #!/usr/bin/bash
-########################################################
-### @brief    startstop switch for tornado app
-### @depend
-### @author   wenchyzhu(wenchyzhu@gmail.com)
-### @date     2018-05-07
-########################################################
+# set -e
+
 function Usage()
 {
     echo "Usage: $0 [start|stop|restart] [singleprocess|multiprocess]"
 }
 
 OPERATION='stop'
-START_MODE="singleprocess"
+MODE="singleprocess"
 
 # parse params
 if [ $# -eq 1 ]; then
     OPERATION="$1"
 elif [ $# -ge 2 ]; then
     OPERATION="$1"
-    START_MODE="$2"
+    MODE="$2"
 else
     Usage
-    exit -1
+    exit 1
 fi
 
 function GetEnv()
@@ -44,52 +40,50 @@ function TailLog()
 
 function Start()
 {
-    echo "----- Start modifier app -----"
+    echo "----- starting... -----"
     cd $(dirname $0)
     env=`GetEnv`
     case ${env} in
-        dev)
-          START_MODE="multiprocess"
+        prod)
+          MODE="multiprocess"
           ;;
         *)
-          echo "not specified env: ${env}, use start mode: ${START_MODE}"
+          echo "not specified env: ${env}, use start mode: ${MODE}"
     esac
-    echo "env: $env, start mode: $START_MODE"
-    echo "starting..."
+    echo "env: $env, start mode: $MODE"
 
-    nohup python app.py $START_MODE ${env} > nohup.log 2>&1 &
+    nohup python3 app.py ${MODE} ${env} > nohup.log 2>&1 &
     echo $! > .app.pid
-    sleep 5 # sleep for 5 seconds, and then check if process has started successfully
+    sleep 1 # sleep N seconds, and then check if process already started successfully
     PID=`cat .app.pid`
     eval $(ps -ejf | awk -v PID=$PID -F" " '{if ($2 == PID) printf("PGID=%s", $4)}')
     if [[ $PGID == "" ]]; then
-        echo "PID: $PID, PGID: not found"
-        echo "Start Failed"
-        exit -1
+        echo "start failed: PID: $PID, PGID: not found"
+        exit 1
     else
         echo "PID: $PID, PGID: $PGID"
-        echo "Start Success"
+        echo "start succeed"
     fi
 }
 
 function Stop()
 {
-    echo "----- Stop modifier app -----"
+    echo "----- stopping... -----"
     cd $(dirname $0)
     # kill process id, only for tornado single-process mod
     # kill -TERM `cat .app.pid`
 
-    # kill process group id, for both tornado multi-process and single-process mode
+    # kill process group id, for both tornado multiprocess and singleprocess mode
     PID=`cat .app.pid`
     eval $(ps -ejf | awk -v PID=$PID -F" " '{if ($2 == PID) printf("PGID=%s", $4)}')
     if [[ $PGID == "" ]]; then
-        echo "PID: $PID, PGID: not found"
-        echo "Stop Failed"
+        echo "already stopped: PID: $PID, PGID: not found"
+        echo "stop succeed"
     else
         echo "PID: $PID, PGID: $PGID"
         kill -TERM -- -$PGID
-        # sleep 3 # sleep for 5 seconds
-        echo "Stop Success"
+        sleep 1
+        echo "stop succeed"
     fi
 }
 
@@ -110,5 +104,5 @@ case ${OPERATION} in
     *)
         echo "invalid args!"
         Usage
-        exit -1
+        exit 1
 esac

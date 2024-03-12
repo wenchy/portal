@@ -21,34 +21,6 @@
         </div>
     </div>
 
-    <div id="ChatPanel" class="panel panel-default collapse">
-        <!-- <div class="panel-heading">
-            <h3 class="panel-title text-center">
-                聊天室
-                <span class="glyphicon glyphicon-comment" aria-hidden="false" title="show log" data-toggle="modal" data-target="#commonResultModal"></span>
-            </h3>
-        </div> -->
-        <div id="ChatPanelBody" class="panel-body">
-            <!-- Create the output editor container -->
-            <div id="ChatOutputEditor"></div>
-
-            <!-- Create the intput editor container -->
-            <div id="chat-toolbar">
-                <!-- Add buttons as you would before -->
-                <button class="ql-bold"></button>
-                <button class="ql-italic"></button>
-                <button class="ql-underline"></button>
-
-                <select class="ql-color"></select>
-                <select class="ql-background"></select>
-
-                <!-- But you can also add your own -->
-                <button id="chat-send-button"><span class="glyphicon glyphicon-send" aria-hidden="true"></span></button>
-            </div>
-            <div id="ChatInputEditor"></div>
-        </div>
-    </div>
-
     <div id="commonResultPanel" class="panel panel-default">
         <div id="commonResultMsg" class="panel-body collapse in">
             <pre class="pre-result"></pre>
@@ -106,34 +78,30 @@
     <script src="/{{ venv_name }}/static/daterangepicker/daterangepicker.js"></script>
     <!-- Include typeahead -->
     <script src="/{{ venv_name }}/static/bootstrap/js/typeahead.min.js"></script>
-    <!-- Include select2 -->
-    <!-- <script src="/js/select2.full.min.js"></script> -->
     <!-- Include jsoneditor -->
     <script src="/{{ venv_name }}/static/jsoneditor/jsoneditor.min.js"></script>
-    <!-- Include the Quill library -->
-    <script src="/{{ venv_name }}/static/quill/quill.min.js"></script>
     <!-- My Customization -->
     <script src="/{{ venv_name }}/static/js/index.js"></script>
     <script>
         function updateUID() {
             save_cookie()
-            $("[name=__uid__]").val($('#g_uid').val())
+            $("[name=_uid]").val($('#g_uid').val())
         }
 
-        function updateEnvAddr() {
+        function updateZone() {
             save_cookie()
-            $("[name=__env__]").val($('#g_env').val())
+            $("[name=_zone]").val($('#g_zone').val())
         }
 
         function updateAccountType() {
             save_cookie()
-            $("[name=__account_type__]").val($('#g_type').val())
+            $("[name=_type]").val($('#g_type').val())
         }
 
 
         function save_cookie() {
             $.cookie("g_uid", $("#g_uid").val())
-            $.cookie("g_env", $("#g_env").val())
+            $.cookie("g_zone", $("#g_zone").val())
             $.cookie("g_type", $("#g_type").val())
         }
 
@@ -142,9 +110,9 @@
             if (g_uid) {
                 $("#g_uid").val(g_uid)
             }
-            var g_env = $.cookie("g_env")
-            if (g_env) {
-                $("#g_env").val(g_env)
+            var g_zone = $.cookie("g_zone")
+            if (g_zone) {
+                $("#g_zone").val(g_zone)
             }
 
             var g_type = $.cookie("g_type")
@@ -154,12 +122,12 @@
         }
         function load_params() {
             var g_uid = getParameterByName('uid'); 
-            var g_env = getParameterByName('env'); 
+            var g_zone = getParameterByName('zone');
             var g_type = getParameterByName('type');
 
-            if (g_uid && g_env && g_type) {
+            if (g_uid && g_zone && g_type) {
                 $("#g_uid").val(g_uid)
-                $("#g_env").val(g_env)
+                $("#g_zone").val(g_zone)
                 $("#g_type").val(g_type)
             }
         }
@@ -182,7 +150,7 @@
             load_cookie()
             load_params()
             updateUID()
-            updateEnvAddr()
+            updateZone()
             updateAccountType()
         });
     </script>

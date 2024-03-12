@@ -1,21 +1,19 @@
-# portal
-A simple yet powerful GM(GameMaker) tool mirco-framework.
+# Portal
+A simple yet powerful GM (Game Maker) mirco-framework.
 
 ## Requirements
-- tornado v5.1.1+
+- python3: `yum install python39`
+- python-dev: `yum install python39-devel`
+- tornado: `python3 -m pip install tornado`
+- redis: `python3 -m pip install redis`
+- protobuf: `python3 -m pip install --no-binary protobuf protobuf`
+- urllib3: `python3 -m pip install urllib3`
 
-## Features
-- Support both **python2** and **python3**
+Optional:
+- gRPC tools(protoc): `python3 -m pip install grpcio-tools`
+- Install gRPC: `python3 -m pip install grpcio`
 
-## Design
-利用反射机制将 controller, admin 目录下的 python 模块和函数映射到 tab 控件和 HTML 表单， 即
-
-- Python module -> Web tab  
-- Python function -> Web form
-
-剥离Web UI层，只需新加一个Python函数就可以开发出一个Web页面可见的功能
-
-## nginx config
+## Nginx config
 reverse proxy
 ```
 location / {
@@ -37,26 +35,34 @@ location ^~ /dev/ {
 }
 ```
 
+
+## Design
+
+- Python module -> HTML tab  
+- Python function -> HTML form
+
 ## Run
+
 Run as **daemon**:
-| Action | Command | Mode|
-|--|--|--|
-| start | ./startstop.sh start | singleprocess\|multiprocess |
-| start | ./startstop.sh stop||
-| start | ./startstop.sh restart | singleprocess\|multiprocess |
+| Action  | Command                  | Mode                              |
+| ------- | ------------------------ | --------------------------------- |
+| start   | `./startstop.sh start`   | `singleprocess` or `multiprocess` |
+| stop    | `./startstop.sh stop`    |                                   |
+| restart | `./startstop.sh restart` | `singleprocess` or `multiprocess` |
 
-## log
-```shell
-vim nohup.log
-vim logs/app
-```
+## Logging
 
-## Introduction
-### Coding Standards
+- nohup.log
+- logs/app.log*
+ 
+
+## Quick start
+
+### Rules
 
 ```python
 @form.onpage
-def func(__uid__, __env__, arg1, arg2, upload__file, opcode=0):
+def func(_ctx, arg1, arg2, upload__file, opcode=0):
     '''
     {
         "title": "title demo",
@@ -87,12 +93,12 @@ def func(__uid__, __env__, arg1, arg2, upload__file, opcode=0):
                 "input": "file"
             },
             "opcode": {
-                "desc": "操作类型",
+                "desc": "Operation",
                 "input": "select",
                 "options": {
-                    "0": "查 询",
-                    "1": "新 增",
-                    "2": "删 除"
+                    "0": "Query",
+                    "1": "Update",
+                    "2": "Delete"
                 }
             }
         },
@@ -104,118 +110,119 @@ def func(__uid__, __env__, arg1, arg2, upload__file, opcode=0):
     return ecode, object
 	return 0, filecontent, {'content_type': 'text/plain', 'filename': 'filename.txt'}
 ```
-### examples
-#### 一个简单的查询表单
+
+### Examples
+
+#### A simple form
+
 ```python
-@util.onpage
-def manage_user(__uid__, __env__, username, opcode):
+@form.onpage
+def manage_player(_ctx, username, opcode):
     '''
     {
-        "title": "用户管理",
+        "title": "Player",
         "args": {
             "username": {
-                "datalist": "$kwargs.get_user_dict"
+                "desc": "Username"
             },
             "opcode": {
-                "desc": "操作类型",
+                "desc": "Operation",
                 "input": "select",
                 "options": {
-                    "1": "查 询",
-                    "2": "删 除"
+                    "0": "Query",
+                    "1": "Update",
+                    "2": "Delete"
                 }
             }
         },
         "submit": "opcode"
     }
     '''
-    if opcode == 1:
-        return username + " is queried"
+    if opcode == 0:
+        return "query: "username
+    elif opcode == 1:
+        return "update: "username
     else:
-        return username + " is deleted"
+        return "delete: "username
 ```
-#### 上传文件
+
+#### Upload file
+
 ```python
-@util.onpage
-def upload(__uid__, __env__, upload__file):
-    '''
+@form.onpage
+def upload(_ctx, upload__file):
+    """
     {
-        "title": "upload",
+        "title": "Upload File",
         "enctype": "multipart/form-data",
         "args": {
             "upload__file": {
                 "tip": "test.txt",
-                "desc": "file path",
+                "desc": "File Path",
                 "input": "file"
             }
         }
     }
-    '''
-    content = upload__file[0]['body']
+    """
+    content = upload__file[0]["body"]
     return 0, content
 ```
-NOTE: 表单编码使用 `"enctype": "multipart/form-data"`，`"input": "file"`，与文件相关相关的参数必须以`_file`为后缀，即本例中的`upload__file`参数。
 
-#### 下载文件
+NOTE:
+- `"enctype": "multipart/form-data"`
+- `"input": "file"`，
+- The argument `upload__file` must be suffixed by`_file`
+
+#### Download file
+
 ```python
-@util.onpage
-def download(__uid__, __env__):
-    '''
+@form.onpage
+def download(_ctx):
+    """
     {
-        "title": "download",
+        "title": "Download File",
         "target": "_blank"
     }
-    '''
+    """
     filename = "test.txt"
-    content = "test file content."
-    return 0, content, {'content_type': 'text/plain', 'filename': filename}
+    content = "This file content is generated from portal."
+    return 0, content, {"content_type": "text/plain", "filename": filename}
 ```
-注意有三个返回值：错误码、文件内容、响应头设置；`"target": "_blank"`
+
+Returning 3 values:
+1. error code
+2. file content 
+3. HTTP response header: `{'content_type': 'text/plain', 'filename': filename}`
+
+In addition, **target** must be set to blank, e.g.: `"target": "_blank"`
 
 ## Concurrency
-### HTTP连接池(HTTPConnectionPool)
-`common/rpc/channel.py`: HTTPConnectionPoolManager  
-A singleton for managing http connetion pool.  
+
+### HTTPConnectionPool
+
+`common/rpc/channel.py`: HTTPConnectionPoolManager is a singleton for managing HTTP connetion pool.  
 Keep-alive and HTTP connection pooling are 100% automatic, thanks to urllib3.
 
-### 协程并发(gevent) (TODO
-`portal/core/concurrent.py`: Concurrent  
-A concurrent module based on gevent.
-```
-def batch_send_mail(uids, title, content, attachment):
-    def send_mail(uid, title, content, attachment):
-	   // e.g.: RPC call 
-       pass
-    concurrency = concurrent.Concurrent()
-    for uid in uids:
-        concurrency.spawn(send_mail, uid, title, content, attachment)
-    concurrency.wait()
-    return
-```
-
 ## Authentication
-> 鉴权
 
-`portal/core/auth.py`: auth implemented by python decorator.  
-A pluggable 6-level authentication module.
-```
+`core/auth.py`: auth implemented by python decorator. 
+
+A pluggable 6-level authentication module:
+```python
  auths = collections.OrderedDict([
         ('admin',  {'handler': auth_admin,  'level': 6}),
         ('oa',     {'handler': auth_oa,     'level': 5}),
         ('test',   {'handler': auth_test,   'level': 4}),
-        ('api',    {'handler': auth_api,    'level': 3}), // with API token
-        ('basic',  {'handler': auth_basic,  'level': 2}), // http basic
-        ('anonym', {'handler': auth_anonym, 'level': 1}), // anoymous
+        ('api',    {'handler': auth_api,    'level': 3}), # with API token
+        ('basic',  {'handler': auth_basic,  'level': 2}), # http basic
+        ('anonym', {'handler': auth_anonym, 'level': 1}), # anoymous
     ])
 ```
 
 ## Authorization
-> 授权: 还未实现RBAC
+
+- [ ] Authorization: role-based access control (RBAC)
 
 ## Configuration
-`portal/config.py`: 区别不同环境和大区
 
-## TODO
--   Authorization: role-based access control (RBAC)
--   **Select**  Autocomplete Dropdown
-    -   Brower built-in Datalist Element: more options, more performance reduction
-    -   remote data sets: no number restriction of select options
+`config.py`: differernt environments' configurations.

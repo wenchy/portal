@@ -1,13 +1,3 @@
-/*
- *   File name: index.js
- *  Created on: 2017-02-10
- * Modified on: 2018-08-19, 2019-09-25
- *      Author: wenchyzhu
- *     Version: v0.3
- *       Brief: tool for test
- *
- */
-
 $(document).ready(function () {
     var cur_env_id = window.location.pathname.split("/")[1];
     // refresh page at five clock on everyday.
@@ -201,7 +191,7 @@ $(document).ready(function () {
             jsoneditor = jsoneditorDict[$jsoneditors.attr("id")];
             console.log("before jsoneditor-content: " + $jsoneditors.attr("id") + ", content: " + jsoneditor.getText())
             // 加入jsoneditor的content参数
-            $(this).find(":input[name='__jsoneditor_content__']").val(jsoneditor.getText());
+            $(this).find(":input[name='_jsoneditor_content']").val(jsoneditor.getText());
             isEditorForm = true;
         }
         var formData = $(this).serialize();
@@ -342,17 +332,11 @@ $(document).ready(function () {
                 break;
         }
     });
-
-    // hook when submit form
-    $("#lua_terminal").click(function () {
-        let env = $("#g_env").val();
-        let url = $(this).attr("href") + "?__env__=" + env;
-        window.open(url, "_blank");
-    });
-
+    
+    // refer: https://github.com/filebrowser/filebrowser 
     $("#filebrowser").click(function () {
         let env = $("#g_env").val();
-        let url = $(this).attr("href") + "?__env__=" + env;
+        let url = $(this).attr("href") + "?_env=" + env;
         window.open(url, "_blank");
     });
 
@@ -386,110 +370,7 @@ $(document).ready(function () {
             $("#commonResultMsg").height("500px");
             $("#commonResultMsg pre").height("500px");
         }
-
     });
-
-
-    // chat room
-    // Initialize Quill editor
-    // var toolbarOptions = [
-    //     ['bold', 'italic', 'underline'], // toggled buttons
-    //     ['link', 'image', 'video'],
-    //     [{ 'color': [] }, { 'background': [] }], // dropdown with defaults from theme
-    // ];
-    var input_quill = new Quill('#ChatInputEditor', {
-        theme: 'snow',
-        modules: {
-            toolbar: "#chat-toolbar"
-        },
-        //placeholder: 'input...'
-    });
-    input_quill.on('text-change', function (delta, oldDelta, source) {
-        if (source == 'api') {
-            console.log("An API call triggered this change.");
-        } else if (source == 'user') {
-            console.log("A user action triggered this change.");
-            if (delta['ops'][delta['ops'].length - 1]['insert'] == "\n") {
-                chatroom_send_msg();
-            }
-        }
-        // console.log('delta: ');
-        // console.log(delta);
-        // console.log('oldDelta: ');
-        // console.log(oldDelta);
-    });
-
-    var output_quill = new Quill('#ChatOutputEditor', {
-        theme: 'bubble',
-        readOnly: true
-    });
-
-    var $output_editor = $("div#ChatOutputEditor .ql-editor");
-
-    /*
-    var ws;
-    function BuildConnection() {
-        ws = new WebSocket("ws://_WEBSOCKET_IP_PORT_/chatroom"); // 新建一个ws连接
-
-        var username = $("#username").text().trim();
-        ws.onopen = function() { // 连接建立好后的回调
-            let hello_content = {"username": username}
-            var input = JSON.stringify(hello_content);
-            ws.send(input); // 向建立的连接发送消息
-        };
-
-        ws.onmessage = function(event) { // 收到服务器发送的消息后执行的回调
-            console.log("receive message: " + event.data); // 接收的消息内容在事件参数evt的data属性中
-            //output_quill.deleteText(0, output_quill.getLength());
-            // output_quill.insertText(output_quill.getLength(), event.data);
-            delta = JSON.parse(event.data);
-            delta.ops.unshift({"retain": output_quill.getLength()});
-            output_quill.updateContents(delta);
-            // 滚动条自动滚动到底部，方便查看
-
-            $output_editor.scrollTop($output_editor[0].scrollHeight);
-        };
-
-        ws.onclose = function () {
-            console.log('You are offline.');
-            delta = {"ops":[{"retain": output_quill.getLength()}, {"insert": 'You are offline.\n'}]};
-            output_quill.updateContents(delta);
-        };
-    }
-
-    BuildConnection();
-
-    setInterval(function() {
-        if (ws.readyState == WebSocket.CLOSED) {
-            console.log('retry connecting...');
-            delta = {"ops":[{"retain": output_quill.getLength()}, {"insert": 'Retry connecting...\n'}]};
-            output_quill.updateContents(delta);
-            BuildConnection();
-        }
-    }, 3 * 1000);
-
-
-    function chatroom_send_msg() {
-        // var input = input_quill.getText();
-        var input = JSON.stringify(input_quill.getContents());
-        console.log("send message: " + input);
-        ws.send(input);
-        input_quill.deleteText(0, input_quill.getLength());
-    }
-    $('#chat-send-button').click(function(event) {
-        chatroom_send_msg();
-    });
-
-    $('#ChatPanel').on('show.bs.collapse', function () {
-        console.log('ChatPanel show.bs.collapse');
-        // BuildConnection();
-    });
-
-    $('#ChatPanel').on('hide.bs.collapse', function () {
-        console.log('ChatPanel hide.bs.collapse');
-        ws.close()
-    })
-    */
 });
 
 /**************************************************************/
