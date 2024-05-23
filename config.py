@@ -192,7 +192,7 @@ AUTHS = {
     ],
 }
 
-VENV_NAME = "unknown"  # will be replaced to real env by deploy.sh
+VENV_NAME = "dev"  # will be replaced to real env by deploy.sh
 
 # 部署环境配置: Virtual ENVironmentS
 # 此命名原因: 一个venv映射多个env, 以利于弹性部署

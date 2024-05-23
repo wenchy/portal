@@ -15,23 +15,32 @@ class MultiProcessFileRotateLogger(logging.Logger):
     def __init__(self, dir="logs", name="portal.log"):
         self.__name = name
         self.__dir = dir
+        self.__handler = None
         if not os.path.exists(self.__dir):
             os.makedirs(self.__dir)
         self.__pid = os.getpid()  # process id
 
         s = super(MultiProcessFileRotateLogger, self)
         s.__init__(name)
+        self.set_multi_process(False)
+
+    def set_multi_process(self, multi_process=True, process_number=0):
+        s = super(MultiProcessFileRotateLogger, self)
         handler = MultiProcessFileRotateLogger.get_handler(
-            self.__dir, self.__name, self.__pid
+            self.__dir, self.__name, multi_process, process_number
         )
-        if hasattr(self, "__handler") and self.__handler:
+        if self.__handler:
             s.removeHandler(self.__handler)
         s.addHandler(handler)
         self.__handler = handler
 
     @staticmethod
-    def get_handler(dir, name, pid):
-        filename = os.path.join(dir, name + "." + str(pid))
+    def get_handler(dir, name, multi_process, process_number):
+        filename = (
+            os.path.join(dir, "%s.%02d" % (name, process_number))
+            if multi_process
+            else os.path.join(dir, name)
+        )
         formatter = logging.Formatter(fmt=LOG_FORMAT, datefmt=DATE_FORMAT)
         # handler = logging.StreamHandler()
         # generate one logfile per day, each logfile exists for 10 days.
@@ -41,8 +50,6 @@ class MultiProcessFileRotateLogger(logging.Logger):
         return handler
 
     def handle(self, record):
-        if self.__pid != os.getpid():
-            self.__init__(self.__dir, self.__name)
         super(MultiProcessFileRotateLogger, self).handle(record)
 
     @staticmethod

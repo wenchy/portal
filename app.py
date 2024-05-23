@@ -31,6 +31,7 @@ from core.logger import log
 from core import context
 from core import auth
 from core import util
+from core.timespan import Timespan
 import config
 
 sys.path.append("common")
@@ -387,7 +388,12 @@ def handle_execute_request(handler: tornado.web.RequestHandler, *args, **kwargs)
 class Execute(tornado.web.RequestHandler):
 
     def post(self, *args, **kwargs):
-        handle_execute_request(self, *args, **kwargs)
+        with Timespan(
+            lambda duration: log.debug(
+                f"handle request time-consuming: {duration}, args: {args}, kwargs: {kwargs}, request.arguments: {self.request.arguments}"
+            )
+        ):
+            handle_execute_request(self, *args, **kwargs)
 
     get = post
 
@@ -435,7 +441,12 @@ class AdminList(tornado.web.RequestHandler):
 class AdminExecute(tornado.web.RequestHandler):
 
     def post(self, *args, **kwargs):
-        handle_execute_request(self, *args, **kwargs)
+        with Timespan(
+            lambda duration: log.debug(
+                f"handle request time-consuming: {duration}, args: {args}, kwargs: {kwargs}, request.arguments: {self.request.arguments}"
+            )
+        ):
+            handle_execute_request(self, *args, **kwargs)
 
     get = post
 
@@ -483,7 +494,8 @@ def start_app(mode):
         server = tornado.httpserver.HTTPServer(app)
         server.bind(config.DEPLOYED_ENV["port"])
         # value 0 means: autodetect cpu cores and fork one process per core
-        server.start(4)
+        server.start(0)
+        log.set_multi_process(True, tornado.process.task_id())
     else:
         log.error("unknown start mode: " + mode)
         Usage()

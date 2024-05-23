@@ -7,7 +7,7 @@ A simple yet powerful Python3 mirco-framework for GM (Game Maker).
 ## Requirements
 
 - python3: `yum install python39`
-- python-dev: `yum install python39-devel`
+- python3-dev: `yum install python39-devel`
 - tornado: `python3 -m pip install tornado`
 - redis: `python3 -m pip install redis`
 - protobuf: `python3 -m pip install --no-binary protobuf protobuf`

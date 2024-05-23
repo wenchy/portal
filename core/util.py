@@ -26,7 +26,9 @@ def exception_catcher(func):
             return func(*args, **kwargs)
         except Exception as e:
             log.error("Caught exception: %s, %s", str(e), str(traceback.format_exc()))
+
     return wrapper
+
 
 def get_forms_by_module(module):
     forms = collections.OrderedDict()
@@ -184,22 +186,6 @@ def clean_html(raw_html):
     cleanre = re.compile("<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});")
     cleantext = re.sub(cleanre, "", raw_html)
     return cleantext
-
-
-class Timespan:
-    def __init__(self, name=None):
-        self.name = name
-
-    def __enter__(self):
-        self.start = time.time()
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        secs = time.time() - self.start
-        delta = datetime.timedelta(seconds=secs)
-        if self.name:
-            log.info("%s total timespan: %s", self.name, delta)
-        else:
-            log.info("total timespan: %s", delta)
 
 
 class ArgComplete:
