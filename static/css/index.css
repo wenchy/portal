@@ -263,6 +263,10 @@ div.item>.panel-danger>.panel-heading {
     max-width: 140px;
 }
 
+#fuzzy-search>div>div>ul.typeahead {
+    width: fit-content !important;
+}
+
 div.info-tip {
     margin-top: 5px;
 }
