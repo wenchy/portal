@@ -1,6 +1,6 @@
 """ExampleEditor"""
 
-__priority__ = 2
+__priority__ = 1000
 
 import json
 from core import form

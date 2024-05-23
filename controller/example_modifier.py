@@ -1,6 +1,6 @@
 """ExampleModifier"""
 
-__priority__ = 1
+__priority__ = 9999
 
 import time
 import collections

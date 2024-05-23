@@ -223,17 +223,12 @@ class ControllerList(tornado.web.RequestHandler):
         username = kwargs["username"]
         auth_type = kwargs["auth_type"]
 
+        modules = ordered_modifier_modules + ordered_editor_modules
+        modules.sort(key=lambda module: module.__priority__, reverse=True)
         tabs = collections.OrderedDict()
-        for module in ordered_modifier_modules:
-            # name pattern of python module is: A.B.C, convert it to A-B-C to comply with HTML name pattern
-            tab_name = module.__name__.replace(".", "-")
-            tabs[tab_name] = {
-                "module_name": module.__name__,
-                "desc": module.__doc__,
-                "forms": util.get_forms_by_module(module),
-            }
-        for module in ordered_editor_modules:
-            # name pattern of python module is: A.B.C, convert it to A-B-C to comply with HTML name pattern
+        for module in modules:
+            # name pattern of python module is: A.B.C, convert it to A-B-C
+            # to comply with HTML name pattern
             tab_name = module.__name__.replace(".", "-")
             tabs[tab_name] = {
                 "module_name": module.__name__,
@@ -405,23 +400,19 @@ class AdminList(tornado.web.RequestHandler):
         username = kwargs["username"]
         auth_type = kwargs["auth_type"]
 
+        modules = admin_ordered_modifier_modules + admin_ordered_editor_modules
+        modules.sort(key=lambda module: module.__priority__, reverse=True)
         tabs = collections.OrderedDict()
-        for module in admin_ordered_modifier_modules:
-            # name pattern of python module is: A.B.C, convert it to A-B-C to comply with HTML name pattern
+        for module in modules:
+            # name pattern of python module is: A.B.C, convert it to A-B-C
+            # to comply with HTML name pattern
             tab_name = module.__name__.replace(".", "-")
             tabs[tab_name] = {
                 "module_name": module.__name__,
                 "desc": module.__doc__,
                 "forms": util.get_forms_by_module(module),
             }
-        for module in admin_ordered_editor_modules:
-            # name pattern of python module is: A.B.C, convert it to A-B-C to comply with HTML name pattern
-            tab_name = module.__name__.replace(".", "-")
-            tabs[tab_name] = {
-                "module_name": module.__name__,
-                "desc": module.__doc__,
-                "forms": util.get_forms_by_module(module),
-            }
+
         # log.debug(tabs)
         self.render(
             "index.html",
