@@ -43,7 +43,7 @@
                 {% for arg_name, arg in func['args'].items() %}
                     {% if arg_name in ["_jsoneditor_content"] %}
                         <input type="hidden" name="{{ arg_name }}" value="" />
-                     {% elif arg_name in ["_ctx"] %}
+                     {% elif arg_name in ["ctx"] %}
                         <input type="hidden" name="_uid" value="" />
                         <input type="hidden" name="_zone" value="" />
                     {% else %}

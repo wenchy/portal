@@ -284,7 +284,7 @@ def handle_execute_request(handler: tornado.web.RequestHandler, *args, **kwargs)
             return
         env = config.DEPLOYED_ZONES[zone_id]["env"]
 
-    _ctx = context.Context(
+    ctx = context.Context(
         account_type=account_type,
         uid=uid,
         zone_id=zone_id,
@@ -293,12 +293,12 @@ def handle_execute_request(handler: tornado.web.RequestHandler, *args, **kwargs)
         extras=extras,
     )
 
-    log.debug("_ctx: %s", _ctx.debug_str())
+    log.debug("ctx: %s", ctx.debug_str())
 
     func_args = util.get_func_args(func)
     args = []
     for arg_name in func_args[0]:
-        log.debugCtx(_ctx, "arg_name: " + arg_name)
+        log.debugCtx(ctx, "arg_name: " + arg_name)
         if arg_name.endswith("__file"):
             # assume as file if arg_name's suffix is '__file'
             arg = handler.request.files.get(arg_name, None)
@@ -321,15 +321,15 @@ def handle_execute_request(handler: tornado.web.RequestHandler, *args, **kwargs)
         uidlist.append(handler.get_argument("_uid", 0))
 
     for uid in uidlist:
-        _ctx.uid = int(uid)
-        args[0] = _ctx
+        ctx.uid = int(uid)
+        args[0] = ctx
 
         try:
             fixed_args = []
             for arg in args:
                 # TODO(wenchy): do type conversion due to type annotation
                 fixed_args.append(arg)
-            log.infoCtx(_ctx, "fixed args: " + str(fixed_args))
+            log.infoCtx(ctx, "fixed args: " + str(fixed_args))
             # result规范：
             # 1. type(result) == tuple
             #   (error_code, content, {content_type: 'Content-Type', filename: 'filename'})
@@ -337,7 +337,7 @@ def handle_execute_request(handler: tornado.web.RequestHandler, *args, **kwargs)
             # 3. 其它，直接输出result，并且附带字符串"\nSUCCESS"
             result = func(*fixed_args)
         except Exception as e:
-            log.warnCtx(_ctx, traceback.format_exc())
+            log.warnCtx(ctx, traceback.format_exc())
             handler.write(traceback.format_exc())
         else:
             if isinstance(result, tuple):

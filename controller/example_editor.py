@@ -4,10 +4,11 @@ __priority__ = 1000
 
 import json
 from core import form
+from core.context import Context
 
 
 @form.onpage
-def manage_player(_ctx, _jsoneditor_content, opcode):
+def manage_player(ctx, _jsoneditor_content, opcode):
     """
     {
         "title": "Player Manager",

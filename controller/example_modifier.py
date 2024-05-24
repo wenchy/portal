@@ -6,6 +6,7 @@ import time
 import collections
 from core import form
 from core import util
+from core.context import Context
 
 
 # NOTE: function which returns dict can be injected into form "options"
@@ -20,7 +21,7 @@ def gen_server_dict():
 
 
 @form.onpage
-def process_server_time(_ctx, svr_name, datetime_str, opcode):
+def process_server_time(ctx, svr_name, datetime_str, opcode):
     """
     {
         "title": "Server Time Manager",
@@ -65,7 +66,7 @@ _ITEM_DICT["100003"] = "Sword"
 
 
 @form.onpage
-def modify_item(_ctx, id, num):
+def modify_item(ctx, id, num):
     """
     {
         "title": "Modify Item",
@@ -84,7 +85,7 @@ def modify_item(_ctx, id, num):
 
 
 @form.onpage
-def manage_whilelist(_ctx, whitelist_type, content, opcode):
+def manage_whilelist(ctx, whitelist_type, content, opcode):
     """
     {
         "title": "Whitelist Manager",
@@ -119,7 +120,7 @@ def manage_whilelist(_ctx, whitelist_type, content, opcode):
 
 
 @form.onpage
-def send_mail(_ctx, title, content, attachments=""):
+def send_mail(ctx, title, content, attachments=""):
     """
     {
         "title": "Send Mail",
@@ -161,7 +162,7 @@ def send_mail(_ctx, title, content, attachments=""):
 
 
 @form.onpage
-def upload(_ctx, upload__file):
+def upload(ctx, upload__file):
     """
     {
         "title": "Upload File",
@@ -180,7 +181,7 @@ def upload(_ctx, upload__file):
 
 
 @form.onpage
-def download(_ctx):
+def download(ctx):
     """
     {
         "title": "Download File",
@@ -193,7 +194,7 @@ def download(_ctx):
 
 
 @form.onpage
-def confirm(_ctx):
+def confirm(ctx):
     """
     {
         "title": "Popup Confirm",

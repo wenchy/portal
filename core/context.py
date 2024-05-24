@@ -1,4 +1,21 @@
 class Context(object):
+    """
+    Fields existed in context:
+        - account_type: int
+        - uid: int
+        - zone_id: int
+        - env: object
+        - trace_id: int
+        - extras: dict
+    """
+
+    account_type: int
+    uid: int
+    zone_id: int
+    env: object
+    trace_id: int
+    extras: dict
+
     def __init__(
         self,
         account_type: int,

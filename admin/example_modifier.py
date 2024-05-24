@@ -3,10 +3,11 @@
 __priority__ = 1
 
 from core import form
+from core.context import Context
 
 
 @form.onpage
-def manage_whilelist(_ctx, whitelist_type, content, opcode):
+def manage_whilelist(ctx, whitelist_type, content, opcode):
     """
     {
         "title": "Whitelist Manager",

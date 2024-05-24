@@ -67,7 +67,7 @@ Run as **daemon**:
 
 ```python
 @form.onpage
-def func(_ctx, arg1, arg2, upload__file, opcode=0):
+def func(ctx, arg1, arg2, upload__file, opcode=0):
     '''
     {
         "title": "title demo",
@@ -122,7 +122,7 @@ def func(_ctx, arg1, arg2, upload__file, opcode=0):
 
 ```python
 @form.onpage
-def manage_player(_ctx, username, opcode):
+def manage_player(ctx, username, opcode):
     '''
     {
         "title": "Player",
@@ -155,7 +155,7 @@ def manage_player(_ctx, username, opcode):
 
 ```python
 @form.onpage
-def upload(_ctx, upload__file):
+def upload(ctx, upload__file):
     """
     {
         "title": "Upload File",
@@ -182,7 +182,7 @@ NOTE:
 
 ```python
 @form.onpage
-def download(_ctx):
+def download(ctx):
     """
     {
         "title": "Download File",

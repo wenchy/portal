@@ -21,12 +21,12 @@ def gen_metadata(uid, key=0):
     return metadata
 
 
-# def get_player(_ctx):
+# def get_player(ctx):
 #     addr = "localhost:9093"
 #     req = test_service_pb2.GetPlayerRequest()
 #     with grpc.insecure_channel(addr) as channel:
 #         stub = test_service_pb2_grpc.InnerGameServiceStub(channel)
-#         response, call = stub.GetPlayer.with_call(req, metadata=gen_metadata(_ctx.uid))
+#         response, call = stub.GetPlayer.with_call(req, metadata=gen_metadata(ctx.uid))
 
 #     return response
 
