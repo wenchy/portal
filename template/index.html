@@ -1,4 +1,4 @@
-{% include header.tpl %}
+{% include header.html %}
 <div id="main_container" class="container">
     <div class="hidden alert alert-danger alert-dismissible advertisement" role="alert">
         <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
@@ -31,7 +31,7 @@
                     </div>
                     {% end %}
                     <div class="row cards-container masonry-container">
-                        {% include cards.tpl %}
+                        {% include cards.html %}
                     </div>
                 </div>
                 {% set count = count + 1 %}
@@ -40,4 +40,4 @@
         </div>
     </div>
 </div>
-{% include footer.tpl %}
+{% include footer.html %}

@@ -133,13 +133,13 @@
                 {% if 'submit' in func and 'options' in func['args'][func['submit']] %}
                 <div class="text-right">
                     {% for value,desc in func['args'][func['submit']]['options'].items() %}
-                        <button type="button" arg_name="{{ func['submit'] }}" class="btn btn-default btn-sm submit-btn" arg_value="{{ value }}">&nbsp;{{ desc }}&nbsp;</button>
+                        <button type="button" arg_name="{{ func['submit'] }}" class="btn btn-default btn-sm submit-btn" arg_value="{{ value }}">{{ desc }}</button>
                     {% end %}
                 </div>
                 {% else %}
                 <div class="form-group">
                     <div class="col-sm-offset-4 col-sm-8">
-                        <button type="submit" class="btn btn-default btn-sm submit-btn">&nbsp;提 交&nbsp;</button>
+                        <button type="submit" class="btn btn-default btn-sm submit-btn">Submit</button>
                     </div>
                 </div>
                 {% end %}

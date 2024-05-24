@@ -47,8 +47,8 @@ function GenVersionInfo() {
     commit=$(git log --pretty=format:'%h' -n 1)
     deployer="${USERNAME} at $(date "+%Y-%m-%d %H:%M:%S")"
     # replace some fields
-    sed -i "s#_VERSION_#${TAG}\ ${commit}#g" ${LOCAL_PATH}/template/header.tpl
-    sed -i "s#_DEPLOYER_#${deployer}#g" ${LOCAL_PATH}/template/header.tpl
+    sed -i "s#_VERSION_#${TAG}\ ${commit}#g" ${LOCAL_PATH}/template/header.html
+    sed -i "s#_DEPLOYER_#${deployer}#g" ${LOCAL_PATH}/template/header.html
 }
 
 function GenAll() {
