@@ -194,6 +194,27 @@ $(document).ready(function () {
             $(this).find(":input[name='_jsoneditor_content']").val(jsoneditor.getText());
             isEditorForm = true;
         }
+
+        var outerThis = this; 
+        // check box
+        var $checkboxList  = $(this).find("div.checkbox");
+        $checkboxList.each(function() {
+            var $checkbox = $(this);
+            if ($checkbox.length > 0) {
+                // 如果有checkbox，则进行如下处理
+                console.log("get check box arg: " + $checkbox.attr("id"))
+                checkbox_id = $checkbox.attr("id")
+                checkbox_sub_id = checkbox_id+"-sub"
+                let arr = [];
+                $(this).find(":input[name='"+checkbox_sub_id+"']:checked").each(function(){
+                    console.log("box val: "+ $(this).val())
+                    arr.push($(this).val());
+                });
+                console.log("get check box arg: " + arr.join(','))
+                $(this).find(":input[name='"+checkbox_sub_id+"']").remove();
+                $(outerThis).find(":input[name='"+checkbox_id+"']").val(arr);
+            }
+        })
         var formData = $(this).serialize();
 
         var ajax_cache = true;
