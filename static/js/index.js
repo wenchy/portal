@@ -196,23 +196,23 @@ $(document).ready(function () {
         }
 
         var outerThis = this; 
-        // check box
+        // checkbox
         var $checkboxList  = $(this).find("div.checkbox");
         $checkboxList.each(function() {
             var $checkbox = $(this);
             if ($checkbox.length > 0) {
-                // 如果有checkbox，则进行如下处理
-                console.log("get check box arg: " + $checkbox.attr("id"))
-                checkbox_id = $checkbox.attr("id")
-                checkbox_sub_id = checkbox_id+"-sub"
-                let arr = [];
-                $(this).find(":input[name='"+checkbox_sub_id+"']:checked").each(function(){
+                // process if checkbox exists
+                console.log("get checkbox id: " + $checkbox.attr("id"))
+                checkboxId = $checkbox.attr("id")
+                checkboxSubId = checkboxId+"-sub"
+                let args = [];
+                $(this).find(":input[name='"+checkboxSubId+"']:checked").each(function(){
                     console.log("box val: "+ $(this).val())
-                    arr.push($(this).val());
+                    args.push($(this).val());
                 });
-                console.log("get check box arg: " + arr.join(','))
-                $(this).find(":input[name='"+checkbox_sub_id+"']").remove();
-                $(outerThis).find(":input[name='"+checkbox_id+"']").val(arr);
+                console.log("get checkbox args: " + args.join(','))
+                $(this).find(":input[name='"+checkboxSubId+"']").remove();
+                $(outerThis).find(":input[name='"+checkboxId+"']").val(args);
             }
         })
         var formData = $(this).serialize();

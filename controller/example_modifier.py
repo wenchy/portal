@@ -204,14 +204,14 @@ def confirm(ctx):
     return "confirmed"
 
 @form.onpage
-def manage_player(ctx, boxes, boxes2):
+def multi_checkbox(ctx, boxes, boxes2):
     """
     {
-        "title": "Multi CheckBox",
+        "title": "Multi Checkbox",
         "args": {
             "boxes": {
                 "input": "checkbox",
-                "desc": "fruit",
+                "desc": "Fruit",
                 "options": {
                    "a": "apple",
                    "b": "banana",
@@ -220,7 +220,7 @@ def manage_player(ctx, boxes, boxes2):
             },
             "boxes2": {
                 "input": "checkbox",
-                "desc": "animinal",
+                "desc": "Animinal",
                 "options": {
                    "d": "bee",
                    "e": "dog",
