@@ -202,3 +202,35 @@ def confirm(ctx):
     }
     """
     return "confirmed"
+
+@form.onpage
+def multi_checkbox(ctx, boxes, boxes2):
+    """
+    {
+        "title": "Multi Checkbox",
+        "args": {
+            "boxes": {
+                "input": "checkbox",
+                "desc": "Fruit",
+                "options": {
+                   "a": "apple",
+                   "b": "banana",
+                   "c": "original"
+                }
+            },
+            "boxes2": {
+                "input": "checkbox",
+                "desc": "Animinal",
+                "options": {
+                   "d": "bee",
+                   "e": "dog",
+                   "f": "cat"
+                }
+            }
+        }
+    }
+    """
+    # boxes return a,b,c
+    # boxes2 return d,e,f
+    #return -1, str(a) + "-" + str(b) + "-"+ str(c)
+    return 0, str(boxes) + "-" + str(boxes2) 
