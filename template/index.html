@@ -1,9 +1,11 @@
 {% include header.html %}
 <div id="main_container" class="container">
-    <div class="hidden alert alert-danger alert-dismissible advertisement" role="alert">
+    {% if 'alert' in deployed_venv and deployed_venv['alert'] %}
+    <div class="alert alert-danger alert-dismissible advertisement" role="alert">
         <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
-        <h5><strong>重要提示</strong>：您当前处于外网正式环境（IDC），请务必谨慎操作！</h5>
+        <h5><strong>⚠️WARNING</strong>: Please be careful, as you are visiting <span class="label label-danger">{{deployed_venv['desc']}}</span>.</h5>
     </div>
+    {% end %}
     <div class="row row-offcanvas row-offcanvas-left">
         <div id="sidebar" class="col-xs-6 col-sm-3 col-md-2 sidebar-offcanvas">
             <!-- Tab navs -->

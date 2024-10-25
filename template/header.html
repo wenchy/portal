@@ -34,9 +34,8 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <a class="navbar-brand" href="/{{ venv_name }}/" data-toggle="tooltip" data-placement="bottom" title="【_VERSION_】Deployed by _DEPLOYER_">
-                        portal&nbsp;{{deployed_venv['desc']}}({{ venv_name }})<br>
-                        <span id="username" class="badge">{{ username }}</span>
+                    <a class="navbar-brand" style="padding: 5px 15px;" href="/{{ venv_name }}/">
+                        <img width="50" height="50" class="img-circle" title="{{ username }} ({{ auth_type }})" data-toggle="tooltip" data-placement="bottom" title="{{ username }} ({{ auth_type }})" src="{{ avatar_url }}">
                     </a>
                     <span class="visible-xs" style="height: 50px; padding: 6px 15px">
                         <button type="button" class="btn btn-default" style="color: #fff; background-color: transparent; border-color: #333; font-size: 18px" data-toggle="offcanvas">
@@ -45,6 +44,11 @@
                     </span>
                 </div>
                 <div id="navbar" class="collapse navbar-collapse">
+                    <a class="navbar-text" style="margin-top: 5px; margin-bottom: 5px;" href="/{{ venv_name }}/" data-toggle="tooltip" data-placement="bottom" title="【_VERSION_】Deployed by _DEPLOYER_">
+                        <strong style="font-size: 18px;">{{deployed_venv['desc']}}</strong>
+                        <br>
+                        <span>{{ username }}</span>
+                    </a>
                     <div class="navbar-form navbar-left">
                         <!--  <select class="form-control" name="SERVER_TYPE" id="env_id" onchange="OnClickSetEnvID(true)">
                         </select> -->
