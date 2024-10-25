@@ -243,7 +243,9 @@ class ControllerList(tornado.web.RequestHandler):
             deployed_venv=config.DEPLOYED_ENV,
             venvs=config.VENVS,
             zones=config.DEPLOYED_ZONES,
-            username=username + " (" + auth_type + ")",
+            username=username,
+            auth_type=auth_type,
+             avatar_url=config.get_avatar_url(username),
             form_action="/modifier/exec",
         )
 
@@ -421,7 +423,9 @@ class AdminList(tornado.web.RequestHandler):
             deployed_venv=config.DEPLOYED_ENV,
             venvs=config.VENVS,
             zones=config.DEPLOYED_ZONES,
-            username=username + " (" + auth_type + ")",
+            username=username,
+            auth_type=auth_type,
+            avatar_url=config.get_avatar_url(username),
             form_action="/admin/exec",
         )
 
@@ -451,8 +455,8 @@ def start_app(mode):
     AdminLoadAllModifiers()
     AdminLoadAllEditors()
 
-    # NOTES:
-    # Application Class dafault constructor:
+    # NOTE:
+    # Application Class default constructor:
     # Application(handlers=None, default_host=None, transforms=None, **settings)
     #
     # application arg: handlers

@@ -149,10 +149,6 @@ body {
     border: 1px solid rgba(4, 18, 27, 0.88);
 }
 
-.navbar-brand {
-    padding: 7px 15px;
-}
-
 .masonry-container>div.item {
     padding-left: 10px;
     padding-right: 10px;
@@ -202,17 +198,17 @@ textarea {
     bottom: 2px;
     margin-bottom: 0px;
     position: fixed;
-    box-shadow: -2px -2px 20px #666;
-    border: none;
+    box-shadow: -1px -1px 10px #999;
+    border: 1px solid #666;
 }
 
 #commonResultPanel>.panel-footer {
     color: #fff;
-    background-color: #870401;
-    /* #3b4045 */
+    /* background-color: #3b4045; */
+    background-color: #111e2c;
     cursor: pointer;
     border: none;
-    /* border-top: 1px solid #3b4045; */
+    border-top: 1px solid #e6e9ec;
 }
 
 div#commonResultMsg {

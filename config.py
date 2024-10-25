@@ -211,6 +211,7 @@ VENVS = collections.OrderedDict(
                             "envs": ["dev"],
                             "port": 8001,
                             "auth": {"controller": "basic", "admin": "admin"},
+                            "alert": True,
                             "domain": "https://xxx.com",
                         },
                     ),
@@ -222,6 +223,7 @@ VENVS = collections.OrderedDict(
                             "envs": ["test", "pre", "audit"],
                             "port": 8002,
                             "auth": {"controller": "basic", "admin": "admin"},
+                            "alert": False,
                             "domain": "https://xxx.com",
                         },
                     ),
@@ -240,6 +242,7 @@ VENVS = collections.OrderedDict(
                             "envs": ["prod"],
                             "port": 9001,
                             "auth": {"controller": "basic", "admin": "admin"},
+                            "alert": True,
                             "domain": "http://xxx.com",
                         },
                     ),
@@ -277,7 +280,12 @@ DEPLOYED_ENV = get_venv(VENV_NAME)
 DEPLOYED_ZONES = filter_zones(DEPLOYED_ENV)
 
 
-def is_devnet():
+def is_devnet() -> bool:
     if VENV_NAME in ["lab", "dev"]:
         return True
     return False
+
+
+def get_avatar_url(username: str) -> str:
+    # TODO: implement custom avatar URL
+    return "/" + VENV_NAME + "/static/img/avatar.svg"
