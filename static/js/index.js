@@ -8,19 +8,9 @@ $(document).ready(function () {
         }
     }, 30 * 60 * 1000);
 
-    var ad_visible = false;
-    if (moment().isBefore('2018-06-01 01:00:00', 'day') || cur_env_id == "idc") {
-        $("div.advertisement").removeClass("hidden");
-        ad_visible = true;
-    }
-    if (ad_visible) {
-        $("div.advertisement").fadeIn("slow").delay(10 * 1000).fadeOut("slow");
-    }
-
     UpdateUidDatalist();
 
     // $(".pinned").pin();
-    // popover
     $('[data-toggle="popover"]').popover()
 
     // offcanvas
@@ -40,9 +30,6 @@ $(document).ready(function () {
             columnWidth: '.item',
             itemSelector: '.item'
         });
-        // // 等待masonry初始化完后
-        // // 初始时就刷新最近最常使用(MRU)的功能卡片
-        // MRURefresh()
     });
 
     // Reinitialize masonry inside each panel after the relative tab link is clicked -
@@ -61,11 +48,7 @@ $(document).ready(function () {
 
     // Firstly Update Date Range Picker
     UpdateTimePicker();
-    // auto uin, 自动填写号码
-    AutoUin();
-    // 初始化typeahead, 搜索自动补全autocomplete
     InitTypeaHead();
-    // 初始化jsoneditor
     var jsoneditor_options = {
         mode: 'tree',
         modes: ['code', 'form', 'text', 'tree', 'view'], // allowed modes
@@ -76,7 +59,6 @@ $(document).ready(function () {
         jsoneditorDict[$(this).attr("id")] = new JSONEditor($(this).get(0), jsoneditor_options);
     });
 
-    // 功能卡片模糊搜索
     $("form#fuzzy-search").submit(function (e) {
         // // First: clear search result html
         // $("div#search_result>div.row").html('');
@@ -123,7 +105,7 @@ $(document).ready(function () {
         return false;
     });
 
-    // 通用表单提交处理: ajax
+    // common form submit: ajax
     $("#tab_body").on("submit", "form", function () {
         var formTarget = $(this).attr("target");
         if (formTarget == "_blank") {
@@ -136,11 +118,11 @@ $(document).ready(function () {
         var title = $(this).parent().siblings(".panel-heading").children(".panel-title").text().trim();
         var operation = $(this).data('operation');
         if (operation == undefined) {
-            operation = "提交";
+            operation = "Submit";
         } else {
             operation = operation.trim().replace(" ", "");
         }
-        var operation_desc = "[" + operation + "]" + title;
+        var operation_desc = "[" + operation + "] " + title;
         var batchProcessConfirm = ""
         var batchProcessTip = ""
         if (isBatchProcess) {
@@ -195,24 +177,24 @@ $(document).ready(function () {
             isEditorForm = true;
         }
 
-        var outerThis = this; 
+        var outerThis = this;
         // checkbox
-        var $checkboxList  = $(this).find("div.checkbox");
-        $checkboxList.each(function() {
+        var $checkboxList = $(this).find("div.checkbox");
+        $checkboxList.each(function () {
             var $checkbox = $(this);
             if ($checkbox.length > 0) {
                 // process if checkbox exists
                 console.log("get checkbox id: " + $checkbox.attr("id"))
                 checkboxId = $checkbox.attr("id")
-                checkboxSubId = checkboxId+"-sub"
+                checkboxSubId = checkboxId + "-sub"
                 let args = [];
-                $(this).find(":input[name='"+checkboxSubId+"']:checked").each(function(){
-                    console.log("box val: "+ $(this).val())
+                $(this).find(":input[name='" + checkboxSubId + "']:checked").each(function () {
+                    console.log("box val: " + $(this).val())
                     args.push($(this).val());
                 });
                 console.log("get checkbox args: " + args.join(','))
-                $(this).find(":input[name='"+checkboxSubId+"']").remove();
-                $(outerThis).find(":input[name='"+checkboxId+"']").val(args);
+                $(this).find(":input[name='" + checkboxSubId + "']").remove();
+                $(outerThis).find(":input[name='" + checkboxId + "']").val(args);
             }
         })
         var formData = $(this).serialize();
@@ -257,8 +239,7 @@ $(document).ready(function () {
                 $("#commonResultPanel img").show();
                 // Firstly clear
                 $result_panel.text("");
-                $result_panel.append("\n【任务" + batchProcessTip + "：" + operation_desc + "】\n\n");
-                // $result_panel.append("\n*****任务开始*****\n");　　　
+                $result_panel.append("Action" + batchProcessTip + ": " + operation_desc + "\n\n");
             },
             success: function (data, name) {
                 if (isEditorForm) {
@@ -278,8 +259,7 @@ $(document).ready(function () {
                 $result_panel.append("\nTextStatus: " + textStatus);
                 $result_panel.append("\nErrorThrown: " + errorThrown);
                 if (errorThrown.trim() == "Unauthorized") {
-                    // 未鉴权，刷新页面让用户进行鉴权
-                    if (confirm('您的OA鉴权已过期！请刷新页面，重新鉴权。')) {
+                    if (confirm('Unauthorized, please refresh webpage.')) {
                         location.reload(true);
                     }
                 }
@@ -289,11 +269,10 @@ $(document).ready(function () {
             complete: function (jqXHR, textStatus) {
                 // Hide loading img
                 $("#commonResultPanel img").hide();
-                // $result_panel.append("\n*****任务结束*****\n");　
-                // 滚动条自动滚动到底部，方便查看结果状态
+                // Scroll down to bottom for showing the result status.
                 $result_panel.scrollTop($('div#commonResultPanel pre')[0].scrollHeight);
 
-                // 计入操作日志
+                // prepend to log panel
                 $log_panel.prepend($result_panel.text());
                 $log_panel.prepend("\n==============================" +
                     "\nAction: " + batchProcessTip + "：" + operation_desc +
@@ -316,9 +295,6 @@ $(document).ready(function () {
                 }
             }
         });
-
-        // Cookies
-        ProcessCookies(title);
         return false;
     });
 
@@ -353,7 +329,7 @@ $(document).ready(function () {
                 break;
         }
     });
-    
+
     // refer: https://github.com/filebrowser/filebrowser 
     $("#filebrowser").click(function () {
         let env = $("#g_env").val();
@@ -369,11 +345,6 @@ $(document).ready(function () {
         $(this).parents("form").find(selector_str).val($(this).attr("arg_value"));
         console.log(selector_str + "  " + $(this).attr("arg_value") + " " + $(this).parents("form").find(selector_str).val());
         $(this).parents("form").submit();
-    });
-
-    $("#mru-tab").click(function () {
-        // 刷新最近最常使用(MRU)的功能卡片
-        MRURefresh();
     });
 
     $("#resize-result-panel").click(function () {
@@ -393,90 +364,6 @@ $(document).ready(function () {
         }
     });
 });
-
-/**************************************************************/
-/************************ 以下为自定义函数 ********************/
-/**************************************************************/
-
-// Cookies
-function ProcessCookies(key_str) {
-    // 最近最常使用(MRU: Most Recently Used)
-    var mru = new Array();
-    if (typeof (Cookies.get('mru')) == 'undefined') {
-        //Cookies.set('mru', 'cookie test', { expires: 30, path: '/' });
-        console.log("First in, Welcome! This site will write cookies for your MRU experience.");
-    } else {
-        mru = Cookies.getJSON('mru');
-        // console.log(mru);
-    }
-    var is_found = false;
-    var mru_index = 0;
-    $.each(mru,
-        function (index, value) {
-            mru_index = index;
-            // console.log(mru_index);
-            // console.log(value.key);
-            // console.log(value.value);
-            if (value.key == key_str) {
-                is_found = true;
-                return false;
-            }
-        }
-    );
-    if (is_found) {
-        mru[mru_index].value += 1;
-    } else {
-        if (mru.length == 0) {
-            mru[mru_index] = { 'key': key_str, 'value': 1 };
-        } else {
-            mru[mru_index + 1] = { 'key': key_str, 'value': 1 };
-        }
-    }
-    //按照value排序: 由大到小
-    var sorted_mru = mru.sort(
-        function (a, b) {
-            if (a.value < b.value) return 1;
-            if (a.value > b.value) return -1;
-            return 0;
-        }
-    );
-    // cookie expire: 30天
-    Cookies.set('mru', sorted_mru, { expires: 30, path: '/' });
-    // console.log(Cookies.get('mru'));
-}
-
-// 最近最常使用
-function MRURefresh() {
-    var mru = new Array();
-    if (typeof (Cookies.get('mru')) == 'undefined') {
-        //Cookies.set('mru', 'cookie test', { expires: 30, path: '/' });
-        console.log("First in, Welcome! This site will write cookies for your MRU experience.");
-    } else {
-        $("div#most_recently_used div.row").html('');
-        //标签id重复问题待解决, 先屏蔽掉此功能
-        return;
-        mru = Cookies.getJSON('mru');
-        // 最近最常使用: 设置最多显示10个功能卡片
-        for (var i = 0; i < mru.length && i < 10; i++) {
-            $(".original-card-tabpanel div.item .panel-title").each(function () {
-                if (mru[i].key == $(this).text()) {
-                    $new_node = $("div#most_recently_used div.masonry-container").append($(this).parents("div.item").prop("outerHTML"));
-                    //console.log($new_node.html());
-                    $new_node.children(".panel-title h3").append("<span class='badge'>" + mru[i].value + "</span>");
-                    //console.log($new_node.children(".panel-title").html());
-                    return false;
-                }
-            });
-        }
-
-        $("div#most_recently_used div.masonry-container div.item").each(function () {
-            $(this).attr("style", '');
-        });
-        $("div#most_recently_used div.masonry-container").masonry('reloadItems');
-        $("div#most_recently_used div.masonry-container").masonry('layout');
-        UpdateTimePicker();
-    }
-}
 
 function UpdateUidDatalist() {
     // uid datalist
@@ -517,41 +404,12 @@ function CookieSetInsert(cookiekey, element) {
 }
 
 function CookieSetGet(cookiekey) {
-    // 最近最常使用(MRU: Most Recently Used)
     var array = new Array();
     if (typeof (Cookies.get(cookiekey)) != 'undefined') {
         array = Cookies.getJSON(cookiekey);
         // console.log(array);
     }
     return array;
-}
-
-
-// 号码自动填写
-function AutoUin() {
-    // auto uin
-    $("#tab_body").on("change", ":input[name='uin']", function () {
-        if ($("input#auto-uin").prop("checked")) {
-            var uin = $(this).val().trim();
-            $(':input[name="uin"]').each(function () {
-                $(this).val(uin);
-            });
-            $(':input[name="player_id"]').each(function () {
-                $(this).val(uin);
-            });
-        }
-    });
-    $("#tab_body").on("change", ":input[name='player_id']", function () {
-        if ($("input#auto-uin").prop("checked")) {
-            var player_id = $(this).val().trim();
-            $(':input[name="player_id"]').each(function () {
-                $(this).val(player_id);
-            });
-            $(':input[name="uin"]').each(function () {
-                $(this).val(player_id);
-            });
-        }
-    });
 }
 
 function UpdateTimePicker() {
@@ -581,7 +439,7 @@ function InitTypeaHead() {
     $(":input[name='search_input']").typeahead({
         hint: true,
         source: search_keys,
-        /*本地数据*/
+        // local data
         items: 10,
         highlight: true,
         minLength: 1,
@@ -592,8 +450,8 @@ function InitTypeaHead() {
     });
 }
 
-// Fuzzy Search (简单的模糊搜索)
-// 参考: https://github.com/bevacqua/fuzzysearch/blob/master/index.js
+// Fuzzy Search
+// Refer to https://github.com/bevacqua/fuzzysearch/blob/master/index.js
 function FuzzySearch(needle, haystack) {
     var hlen = haystack.length;
     var nlen = needle.length;
@@ -615,7 +473,7 @@ function FuzzySearch(needle, haystack) {
     return true;
 }
 
-// 重新动态流式布局
+// Cascading grid layout
 function RelayoutContainer($jquery_obj) {
     $jquery_obj.masonry('reloadItems');
     $jquery_obj.masonry('layout');

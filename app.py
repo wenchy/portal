@@ -455,8 +455,8 @@ def start_app(mode):
     AdminLoadAllModifiers()
     AdminLoadAllEditors()
 
-    # NOTES:
-    # Application Class dafault constructor:
+    # NOTE:
+    # Application Class default constructor:
     # Application(handlers=None, default_host=None, transforms=None, **settings)
     #
     # application arg: handlers

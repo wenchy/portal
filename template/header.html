@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>portal({{deployed_venv['desc']}})</title>
+    <title>{{deployed_venv['desc']}}</title>
     <!-- Bootstrap -->
     <link href="/{{ venv_name }}/static/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <!-- Date Range Picker -->
@@ -23,7 +23,6 @@
 </head>
 
 <body>
-
     <div id="menu_container" class="container">
         <nav class="navbar navbar-inverse navbar-fixed-top">
             <div class="container">
@@ -60,7 +59,7 @@
 
                             {% if venv_name == 'idc' %}
                                <!--  IDC区太多了，支持输入 -->
-                                <input list="zonelist" class="form-control" name="g_zone" id="g_zone" onChange="updateZone()" type="text"  placeholder="zoneid" value="0" data-toggle="tooltip" data-placement="bottom" title="请输入zoneid">
+                                <input list="zonelist" class="form-control" name="g_zone" id="g_zone" onChange="updateZone()" type="text"  placeholder="zoneid" value="0" data-toggle="tooltip" data-placement="bottom" title="zone ID">
                                 <datalist id="zonelist">
                                     {% for zone_id, zone_conf in zones.items() %}
                                         <option value="{{ zone_id }}">{{ zone_conf['desc'] }}</option>
@@ -75,7 +74,7 @@
                                 </select>
                             {% end %}
 
-                            <input list="uidlist" class="form-control" name="g_uid" id="g_uid" onChange="updateUID()" type="text"  placeholder="uid" value="0" data-toggle="tooltip" data-placement="bottom" title="请输入uid">
+                            <input list="uidlist" class="form-control" name="g_uid" id="g_uid" onChange="updateUID()" type="text"  placeholder="uid" value="0" data-toggle="tooltip" data-placement="bottom" title="uid">
                             <datalist id="uidlist"></datalist>
                         </div>
                     </div>

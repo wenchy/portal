@@ -1,7 +1,7 @@
 {% include header.html %}
 <div id="main_container" class="container">
     {% if 'alert' in deployed_venv and deployed_venv['alert'] %}
-    <div class="alert alert-danger alert-dismissible advertisement" role="alert">
+    <div class="alert alert-danger alert-dismissible" role="alert">
         <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
         <h5><strong>⚠️WARNING</strong>: Please be careful, as you are visiting <span class="label label-danger">{{deployed_venv['desc']}}</span>.</h5>
     </div>
