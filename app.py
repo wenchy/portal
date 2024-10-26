@@ -245,7 +245,7 @@ class ControllerList(tornado.web.RequestHandler):
             zones=config.DEPLOYED_ZONES,
             username=username,
             auth_type=auth_type,
-             avatar_url=config.get_avatar_url(username),
+            avatar_url=config.get_avatar_url(username),
             form_action="/modifier/exec",
         )
 
@@ -253,6 +253,14 @@ class ControllerList(tornado.web.RequestHandler):
 
 
 def handle_execute_request(handler: tornado.web.RequestHandler, *args, **kwargs):
+    try:
+        execute_request(handler, *args, **kwargs)
+    except Exception as e:
+        log.error("Caught exception: %s, %s", str(e), traceback.format_exc())
+        handler.write(traceback.format_exc())
+
+
+def execute_request(handler: tornado.web.RequestHandler, *args, **kwargs):
     module_name = handler.get_argument("_module", "")
     assert module_name, "argument _module not provided"
 
@@ -326,52 +334,46 @@ def handle_execute_request(handler: tornado.web.RequestHandler, *args, **kwargs)
         ctx.uid = int(uid)
         args[0] = ctx
 
-        try:
-            fixed_args = []
-            for arg in args:
-                # TODO(wenchy): do type conversion due to type annotation
-                fixed_args.append(arg)
-            log.infoCtx(ctx, "fixed args: " + str(fixed_args))
-            # result规范：
-            # 1. type(result) == tuple
-            #   (error_code, content, {content_type: 'Content-Type', filename: 'filename'})
-            # 2. 如果是json字符串，输出到前端json_editor
-            # 3. 其它，直接输出result，并且附带字符串"\nSUCCESS"
-            result = func(*fixed_args)
-        except Exception as e:
-            log.warnCtx(ctx, traceback.format_exc())
-            handler.write(traceback.format_exc())
-        else:
-            if isinstance(result, tuple):
-                # 如果返回类型是tuple，则默认第一个元素是error code
-                ecode = result[0]
-                if len(result) == 1:
-                    need_write_ecode = True
-                else:
-                    if ecode == 0:
-                        if len(result) == 3 and isinstance(result[2], dict):
-                            handler.set_header(
-                                "Content-Type", result[2]["content_type"]
-                            )
-                            handler.set_header(
-                                "content-Disposition",
-                                "attachement; filename=" + result[2]["filename"],
-                            )
-                            handler.write(result[1])  # file content
-                            need_write_ecode = False
-                        else:
-                            for item in result[1:]:
-                                handler.write(util.to_text(item))
+        fixed_args = []
+        for arg in args:
+            # TODO(wenchy): do type conversion due to type annotation
+            fixed_args.append(arg)
+        log.infoCtx(ctx, "fixed args: " + str(fixed_args))
+        # result规范：
+        # 1. type(result) == tuple
+        #   (error_code, content, {content_type: 'Content-Type', filename: 'filename'})
+        # 2. 如果是json字符串，输出到前端json_editor
+        # 3. 其它，直接输出result，并且附带字符串"\nSUCCESS"
+        result = func(*fixed_args)
+
+        if isinstance(result, tuple):
+            # 如果返回类型是tuple，则默认第一个元素是error code
+            ecode = result[0]
+            if len(result) == 1:
+                need_write_ecode = True
+            else:
+                if ecode == 0:
+                    if len(result) == 3 and isinstance(result[2], dict):
+                        handler.set_header("Content-Type", result[2]["content_type"])
+                        handler.set_header(
+                            "content-Disposition",
+                            "attachement; filename=" + result[2]["filename"],
+                        )
+                        handler.write(result[1])  # file content
+                        need_write_ecode = False
                     else:
                         for item in result[1:]:
                             handler.write(util.to_text(item))
-            elif util.is_json(result):
-                # must only ouptut json data
-                handler.write(util.to_text(result))
-                need_write_ecode = False
-            else:
-                handler.write(util.to_text(result))
-                ecode = 0
+                else:
+                    for item in result[1:]:
+                        handler.write(util.to_text(item))
+        elif util.is_json(result):
+            # must only ouptut json data
+            handler.write(util.to_text(result))
+            need_write_ecode = False
+        else:
+            handler.write(util.to_text(result))
+            ecode = 0
 
     if need_write_ecode:
         if ecode == 0:

@@ -25,7 +25,7 @@ def exception_catcher(func):
         try:
             return func(*args, **kwargs)
         except Exception as e:
-            log.error("Caught exception: %s, %s", str(e), str(traceback.format_exc()))
+            log.error("Caught exception: %s, %s", str(e), traceback.format_exc())
 
     return wrapper
 
