@@ -116,8 +116,8 @@ def html_form(func):
     if "theme" not in ordered_form:
         ordered_form["theme"] = "primary"
 
-    if config.VENV_NAME == "mini":
-        log.debug("mini venv: need confirm when submit the form")
+    if config.VENV_NAME in config.DANGER_VENVS:
+        log.debug(f"{config.VENV_NAME}: need confirm when submit the form")
         ordered_form["popup"] = "prompt"
         ordered_form["theme"] = "danger"
 

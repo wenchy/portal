@@ -1,65 +1,5 @@
 import collections
 
-REDIS_PORT = 16379
-REDIS_PASSWORD = "redispw"
-
-DEV_NODES = {
-    "zonesvr": {
-        "1.0.1.1": "172.16.0.9:10101",
-        "1.0.1.2": "172.16.0.9:10101",
-    },
-    "mailsvr": {
-        "1.0.4.1": "172.16.0.9:10401",
-        "1.0.4.2": "172.16.0.9:10402",
-    },
-}
-
-TEST_NODES = {
-    "zonesvr": {
-        "2.0.1.1": "172.16.0.9:20101",
-        "2.0.1.2": "172.16.0.9:20101",
-    },
-    "mailsvr": {
-        "2.0.4.1": "172.16.0.9:20401",
-        "2.0.4.2": "172.16.0.9:20402",
-    },
-}
-
-AUDIT_NODES = {
-    "zonesvr": {
-        "1.0.1.1": "172.16.0.21:10101",
-        "1.0.1.2": "172.16.0.21:10101",
-    },
-    "mailsvr": {
-        "1.0.4.1": "172.16.0.21:10401",
-        "1.0.4.2": "172.16.0.21:10402",
-    },
-}
-
-PRE_NODES = {
-    "zonesvr": {
-        "2.0.1.1": "172.16.0.21:20101",
-        "2.0.1.2": "172.16.0.21:20101",
-    },
-    "mailsvr": {
-        "2.0.4.1": "172.16.0.21:20401",
-        "2.0.4.2": "172.16.0.21:20402",
-    },
-}
-
-PROD_NODES = {
-    "zonesvr": {
-        "1.0.1.1": "172.16.0.2:10101",
-        "1.0.1.2": "172.16.0.12:10102",
-        "1.0.1.3": "172.16.0.46:10103",
-    },
-    "mailsvr": {
-        "1.0.4.1": "172.16.0.2:10401",
-        "1.0.4.2": "172.16.0.12:10402",
-        "1.0.4.3": "172.16.0.46:10403",
-    },
-}
-
 ENVS = collections.OrderedDict(
     [
         (
@@ -68,11 +8,10 @@ ENVS = collections.OrderedDict(
                 "desc": "dev",
                 "redirection": "dev",
                 "gate": {"ip": "127.0.0.1", "port": 8080},
-                "nodes": DEV_NODES,
                 "redis": {
                     "host": "127.0.0.1",
-                    "port": REDIS_PORT,
-                    "passwd": REDIS_PASSWORD,
+                    "port": 16379,
+                    "passwd": "redispw",
                 },
             },
         ),
@@ -82,11 +21,10 @@ ENVS = collections.OrderedDict(
                 "desc": "test",
                 "redirection": "test",
                 "gate": {"ip": "127.0.0.1", "port": 8080},
-                "nodes": TEST_NODES,
                 "redis": {
                     "host": "127.0.0.1",
-                    "port": REDIS_PORT,
-                    "passwd": REDIS_PASSWORD,
+                    "port": 16379,
+                    "passwd": "redispw",
                 },
             },
         ),
@@ -96,25 +34,10 @@ ENVS = collections.OrderedDict(
                 "desc": "pre",
                 "redirection": "pre",
                 "gate": {"ip": "127.0.0.1", "port": 8080},
-                "nodes": PRE_NODES,
                 "redis": {
-                    "host": "172.16.0.21",
-                    "port": REDIS_PORT,
-                    "passwd": REDIS_PASSWORD,
-                },
-            },
-        ),
-        (
-            "audit",
-            {
-                "desc": "audit",
-                "redirection": "audit",
-                "gate": {"ip": "127.0.0.1", "port": 8080},
-                "nodes": AUDIT_NODES,
-                "redis": {
-                    "host": "172.16.0.21",
-                    "port": REDIS_PORT,
-                    "passwd": REDIS_PASSWORD,
+                    "host": "127.0.0.1",
+                    "port": 16379,
+                    "passwd": "redispw",
                 },
             },
         ),
@@ -124,11 +47,10 @@ ENVS = collections.OrderedDict(
                 "desc": "prod",
                 "redirection": "idcnet",
                 "gate": {"ip": "127.0.0.1", "port": 8080},
-                "nodes": PROD_NODES,
                 "redis": {
-                    "host": "172.16.0.26",
-                    "port": REDIS_PORT,
-                    "passwd": REDIS_PASSWORD,
+                    "host": "127.0.0.1",
+                    "port": 16379,
+                    "passwd": "redispw",
                 },
             },
         ),
@@ -169,7 +91,6 @@ ZONES = collections.OrderedDict(
         (zoneid(7, 1), {"desc": "dev", "env": ENVS["dev"]}),
         (zoneid(7, 2), {"desc": "test", "env": ENVS["test"]}),
         (zoneid(7, 3), {"desc": "pre", "env": ENVS["pre"]}),
-        (zoneid(7, 4), {"desc": "audit", "env": ENVS["audit"]}),
         (zoneid(7, 11), {"desc": "prod", "env": ENVS["prod"]}),
     ]
 )
@@ -193,6 +114,8 @@ AUTHS = {
 }
 
 VENV_NAME = "dev"  # will be replaced to real env by deploy.sh
+
+DANGER_VENVS = []  # prompt when submit form
 
 # 部署环境配置: Virtual ENVironmentS
 # 此命名原因: 一个venv映射多个env, 以利于弹性部署
@@ -220,7 +143,7 @@ VENVS = collections.OrderedDict(
                         {
                             "desc": "测试环境",
                             "path": "test",
-                            "envs": ["test", "pre", "audit"],
+                            "envs": ["test", "pre"],
                             "port": 8002,
                             "auth": {"controller": "basic", "admin": "admin"},
                             "alert": False,

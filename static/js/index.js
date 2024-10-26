@@ -1,5 +1,5 @@
 $(document).ready(function () {
-    var cur_env_id = window.location.pathname.split("/")[1];
+    var curEnvName = window.location.pathname.split("/")[1];
     // refresh page at five clock on everyday.
     setInterval(function () {
         var now = moment();
@@ -8,7 +8,12 @@ $(document).ready(function () {
         }
     }, 30 * 60 * 1000);
 
-    UpdateUidDatalist();
+    updateUidDatalist();
+    loadEnvironFromCookie()
+    loadEnvironFromQuerystring()
+    updateUID()
+    updateZone()
+    updateType()
 
     // $(".pinned").pin();
     $('[data-toggle="popover"]').popover()
@@ -43,15 +48,16 @@ $(document).ready(function () {
                 });
             });
 
-        }); //end shown
-    }); //end each
+        }); // end shown
+    }); // end each
 
     // Firstly Update Date Range Picker
-    UpdateTimePicker();
-    InitTypeaHead();
+    updateDatetimePicker();
+    initTypeaHead();
     var jsoneditor_options = {
         mode: 'tree',
-        modes: ['code', 'form', 'text', 'tree', 'view'], // allowed modes
+        modes: ['tree', 'text'], // allowed modes
+        // modes: ['code', 'form', 'text', 'tree', 'view'], // allowed modes
     };
     var jsoneditorDict = {}
     $("div.jsoneditor").each(function () {
@@ -122,34 +128,34 @@ $(document).ready(function () {
         } else {
             operation = operation.trim().replace(" ", "");
         }
-        var operation_desc = "[" + operation + "] " + title;
+        var operationDesc = "[" + operation + "] " + title;
         var batchProcessConfirm = ""
         var batchProcessTip = ""
         if (isBatchProcess) {
-            batchProcessConfirm = '(批量处理)'
-            batchProcessTip = '<font color="PURPLE"><b>(批量处理)</b></font>'
+            batchProcessConfirm = '(batch processing)'
+            batchProcessTip = '<font color="PURPLE"><b>(batch processing)</b></font>'
             popup = "confirm"
         }
         switch (popup) {
             case "confirm":
-                if (!confirm('您确定' + batchProcessConfirm + '：' + operation_desc + '？')) {
+                if (!confirm('Are you sure to run' + batchProcessConfirm + ': ' + operationDesc + '?')) {
                     console.log("form submit canceled: " + title);
                     return false;
                 }
                 break;
 
             case "alert":
-                alert('注意！您将执行操作: ' + operation_desc + '！')
+                alert('Attention!\nYou will run action: ' + operationDesc + '！')
                 break;
 
             case "prompt":
-                let env_id = prompt('注意！您将执行操作：' + operation_desc + '！\n请输入当前环境ID：', "")
-                if (env_id == null) {
-                    console.log("user cancel prompt: " + operation_desc);
+                let envName = prompt('Action：' + operationDesc + '\nPlease input environment name:', "")
+                if (envName == null) {
+                    console.log("user cancel prompt: " + operationDesc);
                     return false;
                 } else {
-                    if (env_id != cur_env_id) {
-                        alert('输入错误！当前环境ID是：' + cur_env_id)
+                    if (envName != curEnvName) {
+                        alert('Wrong environment name.\nThe current is: ' + curEnvName)
                         return false;
                     }
                 }
@@ -162,17 +168,16 @@ $(document).ready(function () {
         var httpUrl = $(this).attr("action");
         var httpMethod = $(this).attr("method");
 
-        var last_response_len = false;
-        var $result_panel = $("#commonResultPanel pre");
-        var $log_panel = $('#commonResultModal pre')
+        var lastResponseLen = false;
+        var $resultPanel = $("#commonResultPanel pre");
+        var $logPanel = $('#commonResultModal pre')
         var jsoneditor;
         var $jsoneditors = $(this).parents("div.tab-pane").find("div.jsoneditor");
         var isEditorForm = false;
         if ($jsoneditors.length > 0) {
-            // 如果有jsoneditor，则进行如下处理
             jsoneditor = jsoneditorDict[$jsoneditors.attr("id")];
             console.log("before jsoneditor-content: " + $jsoneditors.attr("id") + ", content: " + jsoneditor.getText())
-            // 加入jsoneditor的content参数
+            // set jsoneditor's content
             $(this).find(":input[name='_jsoneditor_content']").val(jsoneditor.getText());
             isEditorForm = true;
         }
@@ -199,14 +204,12 @@ $(document).ready(function () {
         })
         var formData = $(this).serialize();
 
-        var ajax_cache = true;
-        var ajax_contentType = 'application/x-www-form-urlencoded; charset=UTF-8';
-        var ajax_processData = true;
+        var ajaxCache = true;
+        var ajaxContentType = 'application/x-www-form-urlencoded; charset=UTF-8';
+        var ajaxProcessData = true;
 
         if ($(this).attr("enctype") == "multipart/form-data" || isBatchProcess) {
-
             formData = new FormData(this);
-
             var batch_data = $('#batchProcessForm').serializeArray();
             $.each(batch_data, function (key, input) {
                 formData.append(input.name, input.value);
@@ -214,9 +217,9 @@ $(document).ready(function () {
 
             // set Ajax options for uploading file
             httpMethod = 'POST';
-            ajax_cache = false;
-            ajax_contentType = false;
-            ajax_processData = false;
+            ajaxCache = false;
+            ajaxContentType = false;
+            ajaxProcessData = false;
 
             // Display the key/value pairs
             for (var pair of formData.entries()) {
@@ -231,15 +234,15 @@ $(document).ready(function () {
             type: httpMethod,
             data: formData,
             dataType: "text",
-            cache: ajax_cache,
-            contentType: ajax_contentType,
-            processData: ajax_processData,
+            cache: ajaxCache,
+            contentType: ajaxContentType,
+            processData: ajaxProcessData,
             beforeSend: function (jqXHR, settings) {
                 // Show loading img
                 $("#commonResultPanel img").show();
                 // Firstly clear
-                $result_panel.text("");
-                $result_panel.append("Action" + batchProcessTip + ": " + operation_desc + "\n\n");
+                $resultPanel.text("");
+                $resultPanel.append("Action" + batchProcessTip + ": " + operationDesc + "\n\n");
             },
             success: function (data, name) {
                 if (isEditorForm) {
@@ -252,62 +255,61 @@ $(document).ready(function () {
                         console.log('json parse exception: ' + err);
                     }
                 }
-                CookieSetInsert("uidset", $("#g_uid").val());
+                cookieSetInsert("uidset", $("#environ-uid").val());
             },
             error: function (jqXHR, textStatus, errorThrown) {
-                $result_panel.append("\n" + "AJAX failed");
-                $result_panel.append("\nTextStatus: " + textStatus);
-                $result_panel.append("\nErrorThrown: " + errorThrown);
+                $resultPanel.append("\n" + "AJAX failed");
+                $resultPanel.append("\nTextStatus: " + textStatus);
+                $resultPanel.append("\nErrorThrown: " + errorThrown);
                 if (errorThrown.trim() == "Unauthorized") {
                     if (confirm('Unauthorized, please refresh webpage.')) {
                         location.reload(true);
                     }
                 }
-                $log_panel.prepend($result_panel.text());
+                $logPanel.prepend($resultPanel.text());
                 console.log(XMLHttpRequest);
             },
             complete: function (jqXHR, textStatus) {
                 // Hide loading img
                 $("#commonResultPanel img").hide();
                 // Scroll down to bottom for showing the result status.
-                $result_panel.scrollTop($('div#commonResultPanel pre')[0].scrollHeight);
+                $resultPanel.scrollTop($('div#commonResultPanel pre')[0].scrollHeight);
 
                 // prepend to log panel
-                $log_panel.prepend($result_panel.text());
-                $log_panel.prepend("\n==============================" +
-                    "\nAction: " + batchProcessTip + "：" + operation_desc +
+                $logPanel.prepend($resultPanel.text());
+                $logPanel.prepend("\n==============================" +
+                    "\nAction: " + batchProcessTip + "：" + operationDesc +
                     "\n  Time: " + moment().format('YYYY-MM-DD HH:mm:ss') +
                     "\n   URL: " + httpUrl + "?" + formData + "\n");
             },
             xhrFields: {
                 onprogress: function (e) {
-                    var this_response, response = e.currentTarget.response;
-                    if (last_response_len === false) {
-                        this_response = response;
-                        last_response_len = response.length;
+                    var thisResponse, response = e.currentTarget.response;
+                    if (lastResponseLen === false) {
+                        thisResponse = response;
+                        lastResponseLen = response.length;
                     } else {
-                        this_response = response.substring(last_response_len);
-                        last_response_len = response.length;
+                        thisResponse = response.substring(lastResponseLen);
+                        lastResponseLen = response.length;
                     }
-                    //console.log(this_response);
-                    $result_panel.append(this_response);
-                    $result_panel.scrollTop($('div#commonResultPanel pre')[0].scrollHeight);
+                    // console.log(thisResponse);
+                    $resultPanel.append(thisResponse);
+                    $resultPanel.scrollTop($('div#commonResultPanel pre')[0].scrollHeight);
                 }
             }
         });
         return false;
     });
 
-    var click_timer;
-
+    var clickTimer;
     function SetClickTimer($submit_btn, seconds) {
-        click_timer = setInterval(function () {
+        clickTimer = setInterval(function () {
             $submit_btn.click()
         }, seconds * 1000);
     }
 
-    function ClearClickTimer(click_timer) {
-        clearInterval(click_timer);
+    function ClearClickTimer(clickTimer) {
+        clearInterval(clickTimer);
     }
 
     // hook when submit form
@@ -316,7 +318,7 @@ $(document).ready(function () {
             case 1:
                 // left click
                 console.log("left click")
-                ClearClickTimer(click_timer);
+                ClearClickTimer(clickTimer);
                 break;
             case 2:
                 // middle click
@@ -330,20 +332,13 @@ $(document).ready(function () {
         }
     });
 
-    // refer: https://github.com/filebrowser/filebrowser 
-    $("#filebrowser").click(function () {
-        let env = $("#g_env").val();
-        let url = $(this).attr("href") + "?_env=" + env;
-        window.open(url, "_blank");
-    });
-
     // multi submit form
     $("#tab_body").on("click", '.submit-btn[type="button"]', function (e) {
         // data setter
         $(this).parents("form").data('operation', $(this).text());
-        var selector_str = "select[name='" + $(this).attr("arg_name") + "']";
-        $(this).parents("form").find(selector_str).val($(this).attr("arg_value"));
-        console.log(selector_str + "  " + $(this).attr("arg_value") + " " + $(this).parents("form").find(selector_str).val());
+        var selectorStr = "select[name='" + $(this).attr("arg_name") + "']";
+        $(this).parents("form").find(selectorStr).val($(this).attr("arg_value"));
+        console.log(selectorStr + "  " + $(this).attr("arg_value") + " " + $(this).parents("form").find(selectorStr).val());
         $(this).parents("form").submit();
     });
 
@@ -365,7 +360,7 @@ $(document).ready(function () {
     });
 });
 
-function UpdateUidDatalist() {
+function updateUidDatalist() {
     // uid datalist
     $("#uidlist").text("");
     var uidset = CookieSetGet("uidset");
@@ -375,7 +370,7 @@ function UpdateUidDatalist() {
     }
 }
 
-function CookieSetInsert(cookiekey, element) {
+function cookieSetInsert(cookiekey, element) {
     var array = new Array();
     if (typeof (Cookies.get(cookiekey)) != 'undefined') {
         array = Cookies.getJSON(cookiekey);
@@ -399,7 +394,7 @@ function CookieSetInsert(cookiekey, element) {
         // cookie expire: 30天
         Cookies.set(cookiekey, array, { expires: 30, path: '/' });
         console.log(Cookies.get(cookiekey));
-        UpdateUidDatalist()
+        updateUidDatalist()
     }
 }
 
@@ -412,8 +407,7 @@ function CookieSetGet(cookiekey) {
     return array;
 }
 
-function UpdateTimePicker() {
-    // Date Range Picker
+function updateDatetimePicker() {
     $('input.datetimepicker').daterangepicker({
         timePicker24Hour: true,
         singleDatePicker: true,
@@ -429,16 +423,17 @@ function UpdateTimePicker() {
         }
     });
 }
+
 // autocomplete
-function InitTypeaHead() {
-    var search_keys = new Array();
+function initTypeaHead() {
+    var searchKeys = new Array();
     var i = 0;
     $("div.item .panel-title").each(function () {
-        search_keys[i++] = $(this).text().trim();
+        searchKeys[i++] = $(this).text().trim();
     });
     $(":input[name='search_input']").typeahead({
         hint: true,
-        source: search_keys,
+        source: searchKeys,
         // local data
         items: 10,
         highlight: true,
@@ -452,7 +447,7 @@ function InitTypeaHead() {
 
 // Fuzzy Search
 // Refer to https://github.com/bevacqua/fuzzysearch/blob/master/index.js
-function FuzzySearch(needle, haystack) {
+function fuzzySearch(needle, haystack) {
     var hlen = haystack.length;
     var nlen = needle.length;
     if (nlen > hlen) {
@@ -473,16 +468,59 @@ function FuzzySearch(needle, haystack) {
     return true;
 }
 
-// Cascading grid layout
-function RelayoutContainer($jquery_obj) {
-    $jquery_obj.masonry('reloadItems');
-    $jquery_obj.masonry('layout');
+function updateUID() {
+    saveEnvironToCookie()
+    $("[name=_uid]").val($('#environ-uid').val())
 }
 
-function GetQueryString(name) {
-    var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
-    var r = window.location.search.substr(1).match(reg);
-    if (r != null)
-        return unescape(r[2]);
-    return null;
+function updateZone() {
+    saveEnvironToCookie()
+    $("[name=_zone]").val($('#environ-zone').val())
+}
+
+function updateType() {
+    saveEnvironToCookie()
+    $("[name=_type]").val($('#environ-type').val())
+}
+
+
+function saveEnvironToCookie() {
+    $.cookie("environ-uid", $("#environ-uid").val())
+    $.cookie("environ-zone", $("#environ-zone").val())
+    $.cookie("environ-type", $("#environ-type").val())
+}
+
+function loadEnvironFromCookie() {
+    var uid = $.cookie("environ-uid")
+    if (uid) {
+        $("#environ-uid").val(uid)
+    }
+    var zone = $.cookie("environ-zone")
+    if (zone) {
+        $("#environ-zone").val(zone)
+    }
+    var type = $.cookie("environ-type")
+    if (type) {
+        $("#environ-type").val(type)
+    }
+}
+function loadEnvironFromQuerystring() {
+    var uid = getValueFromQuerystring('uid');
+    var zone = getValueFromQuerystring('zone');
+    var type = getValueFromQuerystring('type');
+    if (uid && zone && type) {
+        $("#environ-uid").val(uid)
+        $("#environ-zone").val(zone)
+        $("#environ-type").val(type)
+    }
+}
+
+function getValueFromQuerystring(name, url) {
+    if (!url) url = window.location.href;
+    name = name.replace(/[\[\]]/g, "\\$&");
+    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
