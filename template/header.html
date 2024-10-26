@@ -52,29 +52,29 @@
                         <!--  <select class="form-control" name="SERVER_TYPE" id="env_id" onchange="OnClickSetEnvID(true)">
                         </select> -->
                         <div class="form-group">
-                            <select class="form-control" name="g_type" id="g_type" onChange="updateAccountType()">
+                            <select class="form-control" name="environ-type" id="environ-type" onChange="updateType()">
                                 <option value="0" >IOS</option>
                                 <option value="1" selected="selected">安卓</option>
                             </select>
 
                             {% if venv_name == 'idc' %}
-                               <!--  IDC区太多了，支持输入 -->
-                                <input list="zonelist" class="form-control" name="g_zone" id="g_zone" onChange="updateZone()" type="text"  placeholder="zoneid" value="0" data-toggle="tooltip" data-placement="bottom" title="zone ID">
+                               <!--  too many envs, so allow user to input it -->
+                                <input list="zonelist" class="form-control" name="environ-zone" id="environ-zone" onChange="updateZone()" type="text"  placeholder="zoneid" value="0" data-toggle="tooltip" data-placement="bottom" title="zone ID">
                                 <datalist id="zonelist">
                                     {% for zone_id, zone_conf in zones.items() %}
                                         <option value="{{ zone_id }}">{{ zone_conf['desc'] }}</option>
                                     {% end %}
                                 </datalist>
                             {% else %}
-                                <!--  开发测试等区数量有限，使用select，方便操作 -->
-                                <select class="form-control" name="g_zone" id="g_zone" onChange="updateZone()">
+                                <!--  default: select -->
+                                <select class="form-control" name="environ-zone" id="environ-zone" onChange="updateZone()">
                                     {% for zone_id, zone_conf in zones.items() %}
                                         <option value="{{ zone_id }}">{{ zone_conf['desc'] }}</option>
                                     {% end %}
                                 </select>
                             {% end %}
 
-                            <input list="uidlist" class="form-control" name="g_uid" id="g_uid" onChange="updateUID()" type="text"  placeholder="uid" value="0" data-toggle="tooltip" data-placement="bottom" title="uid">
+                            <input list="uidlist" class="form-control" name="environ-uid" id="environ-uid" onChange="updateUID()" type="text"  placeholder="uid" value="0" data-toggle="tooltip" data-placement="bottom" title="uid">
                             <datalist id="uidlist"></datalist>
                         </div>
                     </div>

@@ -244,12 +244,12 @@ div.item>.panel-danger>.panel-heading {
     border-color: #b95555;
 }
 
-#g_env {
+#environ-zone {
     min-width: 100px;
     max-width: 250px;
 }
 
-#g_uid {
+#environ-uid {
     min-width: 200px;
     max-width: 250px;
 }

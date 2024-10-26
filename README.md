@@ -6,7 +6,7 @@ A simple yet powerful Python3 mirco-framework for GM (Game Maker).
 
 ## Requirements
 
-- python3: `yum install python39`
+- python3 (v3.9+): `yum install python39`
 - python3-dev: `yum install python39-devel`
 - tornado: `python3 -m pip install tornado`
 - redis: `python3 -m pip install redis`
@@ -41,10 +41,13 @@ location ^~ /dev/ {
 ```
 
 
-## Design
+## Python -> HTML mapping
 
-- Python module -> HTML tab  
-- Python function -> HTML form
+| Python                                                                                      | HTML                                                                                                                                                                                                                                                   |
+| ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [module](https://docs.python.org/3/tutorial/modules.html)                                   | [tab](https://getbootstrap.com/docs/3.4/components/#nav-tabs)                                                                                                                                                                                          |
+| [function](https://docs.python.org/3/tutorial/controlflow.html#defining-functions)          | [form](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form)                                                                                                                                                                                 |
+| [arguments](https://docs.python.org/3/tutorial/controlflow.html#more-on-defining-functions) | - [input](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input) <br> - [textarea](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea) <br> - [select](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select)<br> |
 
 ## Run
 
@@ -231,3 +234,11 @@ A pluggable 6-level authentication module:
 ## Configuration
 
 `config.py`: differernt environments' configurations.
+
+## References
+
+- [jsoneditor](https://github.com/josdejong/jsoneditor)
+- [bootstrap v3.4](https://getbootstrap.com/docs/3.4/)
+- [python inspect](https://docs.python.org/3/library/inspect.html)
+- [python typing](https://docs.python.org/3/library/typing.html)
+- [python function](https://docs.python.org/3/tutorial/controlflow.html#defining-functions)
