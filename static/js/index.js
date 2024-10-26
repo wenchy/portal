@@ -242,7 +242,7 @@ $(document).ready(function () {
                 $("#commonResultPanel img").show();
                 // Firstly clear
                 $resultPanel.text("");
-                $resultPanel.append("Action" + batchProcessTip + ": " + operationDesc + "\n\n");
+                $resultPanel.append("<strong>Action" + batchProcessTip + ": " + operationDesc + "</strong>\n\n");
             },
             success: function (data, name) {
                 if (isEditorForm) {
@@ -258,16 +258,16 @@ $(document).ready(function () {
                 cookieSetInsert("uidset", $("#environ-uid").val());
             },
             error: function (jqXHR, textStatus, errorThrown) {
-                $resultPanel.append("\n" + "AJAX failed");
-                $resultPanel.append("\nTextStatus: " + textStatus);
-                $resultPanel.append("\nErrorThrown: " + errorThrown);
+                console.log(jqXHR)
+                $resultPanel.append("\najax failed");
+                $resultPanel.append("\nstatus: " + jqXHR.status);
+                $resultPanel.append("\ntextStatus: " + textStatus);
+                $resultPanel.append("\nerrorThrown: " + errorThrown);
                 if (errorThrown.trim() == "Unauthorized") {
                     if (confirm('Unauthorized, please refresh webpage.')) {
                         location.reload(true);
                     }
                 }
-                $logPanel.prepend($resultPanel.text());
-                console.log(XMLHttpRequest);
             },
             complete: function (jqXHR, textStatus) {
                 // Hide loading img
@@ -276,9 +276,11 @@ $(document).ready(function () {
                 $resultPanel.scrollTop($('div#commonResultPanel pre')[0].scrollHeight);
 
                 // prepend to log panel
-                $logPanel.prepend($resultPanel.text());
-                $logPanel.prepend("\n==============================" +
-                    "\nAction: " + batchProcessTip + "：" + operationDesc +
+                // remove first title line to avoid duplicating (e.g.: Action: XXX)
+                let content = $resultPanel.text().split("\n").slice(1).join("\n")
+                $logPanel.prepend(content);
+                $logPanel.prepend("\n******************************************************" +
+                    "\nAction" + batchProcessTip + ": " + operationDesc +
                     "\n  Time: " + moment().format('YYYY-MM-DD HH:mm:ss') +
                     "\n   URL: " + httpUrl + "?" + formData + "\n");
             },
@@ -292,7 +294,6 @@ $(document).ready(function () {
                         thisResponse = response.substring(lastResponseLen);
                         lastResponseLen = response.length;
                     }
-                    // console.log(thisResponse);
                     $resultPanel.append(thisResponse);
                     $resultPanel.scrollTop($('div#commonResultPanel pre')[0].scrollHeight);
                 }
