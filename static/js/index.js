@@ -182,8 +182,8 @@ $(document).ready(function () {
             isEditorForm = true;
         }
 
-        var outerThis = this;
         // checkbox
+        var outerThis = this;
         var $checkboxList = $(this).find("div.checkbox");
         $checkboxList.each(function () {
             var $checkbox = $(this);
@@ -194,11 +194,9 @@ $(document).ready(function () {
                 checkboxSubId = checkboxId + "-sub"
                 let args = [];
                 $(this).find(":input[name='" + checkboxSubId + "']:checked").each(function () {
-                    console.log("box val: " + $(this).val())
                     args.push($(this).val());
                 });
-                console.log("get checkbox args: " + args.join(','))
-                $(this).find(":input[name='" + checkboxSubId + "']").remove();
+                console.log("all checked boxes: " + args.join(','))
                 $(outerThis).find(":input[name='" + checkboxId + "']").val(args);
             }
         })

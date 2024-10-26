@@ -93,10 +93,9 @@
                                 <label class="{{ label_class }}">{{ arg['desc'] }}</label>
                                 <div class="checkbox {{ input_class }}" id="{{ arg_name }}">
                                     {% for value, desc in arg['options'].items() %} 
-                                    <div class="form-check {{ input_class }}">
-                                        <input type="checkbox" class="form-check-input" name = "{{arg_name}}-sub" value="{{ value }}"> 
-                                        <label class="form-check-label ">{{ desc }}</label>
-                                    </div>
+                                    <label>
+                                        <input type="checkbox" name="{{arg_name}}-sub" value="{{ value }}"> {{ desc }}
+                                    </label>
                                      {% end %}
                                 </div>
                                 <input name="{{ arg_name }}" class="hidden">
