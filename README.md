@@ -17,10 +17,18 @@ Optional:
 - gRPC tools(protoc): `python3 -m pip install grpcio-tools`
 - Install gRPC: `python3 -m pip install grpcio`
 
-## Nginx config
 
-reverse proxy
-```
+## Design: Python -> HTML mapping
+
+| Python                                                                                      | HTML                                                                                                                                                                                                                                                   |
+| ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [module](https://docs.python.org/3/tutorial/modules.html)                                   | [tab](https://getbootstrap.com/docs/3.4/components/#nav-tabs)                                                                                                                                                                                          |
+| [function](https://docs.python.org/3/tutorial/controlflow.html#defining-functions)          | [form](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form)                                                                                                                                                                                 |
+| [arguments](https://docs.python.org/3/tutorial/controlflow.html#more-on-defining-functions) | - [input](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input) <br> - [textarea](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea) <br> - [select](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select)<br> |
+
+## Nginx reverse proxy
+
+```nginx
 location / {
     rewrite / /dev redirect;
 }
@@ -30,7 +38,8 @@ location = /favicon.ico {
 }
 
 location ^~ /dev/ {
-    rewrite  (/dev/)(.*)$ /$2 break;
+    # NOTE: new portal version support prefix path, no need to rewrite
+    # rewrite  (/dev/)(.*)$ /$2 break;
     proxy_pass_header Server;
     proxy_set_header Host $http_host;
     proxy_redirect off;
@@ -40,16 +49,9 @@ location ^~ /dev/ {
 }
 ```
 
-
-## Python -> HTML mapping
-
-| Python                                                                                      | HTML                                                                                                                                                                                                                                                   |
-| ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [module](https://docs.python.org/3/tutorial/modules.html)                                   | [tab](https://getbootstrap.com/docs/3.4/components/#nav-tabs)                                                                                                                                                                                          |
-| [function](https://docs.python.org/3/tutorial/controlflow.html#defining-functions)          | [form](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form)                                                                                                                                                                                 |
-| [arguments](https://docs.python.org/3/tutorial/controlflow.html#more-on-defining-functions) | - [input](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input) <br> - [textarea](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea) <br> - [select](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select)<br> |
-
 ## Run
+
+Run: `python3 app.py`
 
 Run as **daemon**:
 | Action  | Command                  | Mode                              |

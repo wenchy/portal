@@ -44,7 +44,7 @@
                 </div>
                 <div id="navbar" class="collapse navbar-collapse">
                     <a class="navbar-text" style="margin-top: 5px; margin-bottom: 5px;" href="/{{ venv_name }}/" data-toggle="tooltip" data-placement="bottom" title="【_VERSION_】Deployed by _DEPLOYER_">
-                        <strong style="font-size: 18px;">{{deployed_venv['desc']}}</strong>
+                        <strong style="font-size: 18px;"><span class="badge badge-secondary">{{ venv_name }}</span> {{deployed_venv['desc']}}</strong>
                         <br>
                         <span>{{ username }}</span>
                     </a>

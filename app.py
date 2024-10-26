@@ -134,45 +134,6 @@ def AdminLoadAllEditors():
     log.debug("admin_ordered_editor_modules: " + str(admin_ordered_editor_modules))
 
 
-class FileUploadHandler(tornado.web.RequestHandler):
-    def get(self):
-        filename = self.get_argument("filename")
-        filename = os.path.join("./files/", filename)
-        # http头 浏览器自动识别为文件下载
-        self.set_header("Content-Type", "application/octet-stream")
-        # 下载时显示的文件名称
-        self.set_header("Content-Disposition", "attachment; filename=%s" % filename)
-        with open(filename, "rb") as f:
-            while True:
-                data = f.read(1024)
-                if not data:
-                    break
-                self.write(data)
-        # # 记得有finish哦
-        self.finish()
-
-    def post(self):
-        ret = {"result": "OK"}
-        upload_path = os.path.join(os.path.dirname(__file__), "files")  # 文件的暂存路径
-        file_metas = self.request.files.get(
-            "file", None
-        )  # 提取表单中‘name’为‘file’的文件元数据
-
-        if not file_metas:
-            ret["result"] = "Invalid Args"
-            return ret
-
-        for meta in file_metas:
-            filename = meta["filename"]
-            file_path = os.path.join(upload_path, filename)
-
-            with open(file_path, "wb") as up:
-                up.write(meta["body"])
-                # OR do other thing
-
-        self.write(json.dumps(ret))
-
-
 @auth.auth(config.DEPLOYED_ENV["auth"]["controller"])
 class ControllerList(tornado.web.RequestHandler):
 
@@ -237,7 +198,7 @@ class ControllerList(tornado.web.RequestHandler):
             }
         # log.debug(tabs)
         self.render(
-            "index.html",
+            "./template/index.html",
             tabs=tabs,
             venv_name=config.VENV_NAME,
             deployed_venv=config.DEPLOYED_ENV,
@@ -419,7 +380,7 @@ class AdminList(tornado.web.RequestHandler):
 
         # log.debug(tabs)
         self.render(
-            "index.html",
+            "./template/index.html",
             tabs=tabs,
             venv_name=config.VENV_NAME,
             deployed_venv=config.DEPLOYED_ENV,
@@ -457,39 +418,41 @@ def start_app(mode):
     AdminLoadAllModifiers()
     AdminLoadAllEditors()
 
-    # NOTE:
-    # Application Class default constructor:
-    # Application(handlers=None, default_host=None, transforms=None, **settings)
-    #
-    # application arg: handlers
+    # NOTE: configure prefix path redirection for VENV_NAME, so we can
+    # start standalone web app without nginx reverse proxy.
     handlers = [
+        # static file handlers
         (r"/(favicon.ico)", tornado.web.StaticFileHandler, {"path": ""}),
-        (r"/", ControllerList),
-        (r"/modifier/", ControllerList),
-        (r"/modifier/list", ControllerList),
-        (r"/modifier/exec", Execute),
-        (r"/admin/", AdminList),
-        (r"/admin/list", AdminList),
-        (r"/admin/exec", AdminExecute),
-        (r"/file", FileUploadHandler),
+        (
+            rf"/{config.VENV_NAME}/static/(.*)",
+            tornado.web.StaticFileHandler,
+            {"path": "./static/"},
+        ),
+        # dynamic handlers
+        (rf"/({config.VENV_NAME}/?)?", ControllerList),
+        (rf"/{config.VENV_NAME}/modifier/list", ControllerList),
+        (rf"/{config.VENV_NAME}/modifier/exec", Execute),
+        (rf"/{config.VENV_NAME}/admin/list", AdminList),
+        (rf"/{config.VENV_NAME}/admin/exec", AdminExecute),
     ]
     # application kwargs: settings
     settings = {
         "debug": True,  # if in multiprocess mode, set `debug = False`
-        "static_path": "./static",
-        "template_path": "./template",
     }
 
+    # TODO: parse address and port from command arguments if provided
+    address = "0.0.0.0"
+    port = config.DEPLOYED_ENV["port"]
     if mode == "singleprocess":
         settings["debug"] = False
         app = tornado.web.Application(handlers, **settings)
         server = tornado.httpserver.HTTPServer(app)
-        server.listen(config.DEPLOYED_ENV["port"])
+        server.listen(port, address=address)
     elif mode == "multiprocess":
         settings["debug"] = False
         app = tornado.web.Application(handlers, **settings)
         server = tornado.httpserver.HTTPServer(app)
-        server.bind(config.DEPLOYED_ENV["port"])
+        server.bind(port, address=address)
         # value 0 means: autodetect cpu cores and fork one process per core
         server.start(0)
         log.set_multi_process(True, tornado.process.task_id())
@@ -508,6 +471,10 @@ def start_app(mode):
     log.info("tornado.process.task_id: " + str(tornado.process.task_id()))
     if not tornado.process.task_id():
         tornado.ioloop.PeriodicCallback(periodic_task, 10 * 1000).start()
+
+    for hanlder in handlers:
+        print(f"""Route "{hanlder[0]}" -> {hanlder[1].__name__}""")
+    print(f"\nServer is running on http://{address}:{port}\n")
 
     try:
         # start web server
