@@ -10,7 +10,7 @@ from core.context import Context
 def manage_whilelist(ctx, whitelist_type, content, opcode):
     """
     {
-        "title": "Whitelist Manager",
+        "title": "Whitelist",
         "args": {
             "whitelist_type": {
                 "desc": "Type",

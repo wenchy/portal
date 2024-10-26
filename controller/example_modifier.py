@@ -24,7 +24,7 @@ def gen_server_dict():
 def process_server_time(ctx, svr_name, datetime_str, opcode):
     """
     {
-        "title": "Server Time Manager",
+        "title": "Server time",
         "args": {
             "svr_name": {
                 "desc": "Server",
@@ -69,7 +69,7 @@ _ITEM_DICT["100003"] = "Sword"
 def modify_item(ctx, id, num):
     """
     {
-        "title": "Modify Item",
+        "title": "Modify item",
         "args": {
             "id": {
                 "datalist": "$_ITEM_DICT"
@@ -88,7 +88,7 @@ def modify_item(ctx, id, num):
 def manage_whilelist(ctx, whitelist_type, content, opcode):
     """
     {
-        "title": "Whitelist Manager",
+        "title": "Whitelist",
         "args": {
             "whitelist_type": {
                 "desc": "Type",
@@ -123,7 +123,7 @@ def manage_whilelist(ctx, whitelist_type, content, opcode):
 def send_mail(ctx, title, content, attachments=""):
     """
     {
-        "title": "Send Mail",
+        "title": "Send mail",
         "args": {
             "title": {
                 "desc": "Title",
@@ -165,7 +165,7 @@ def send_mail(ctx, title, content, attachments=""):
 def upload(ctx, upload__file):
     """
     {
-        "title": "Upload File",
+        "title": "Upload file",
         "enctype": "multipart/form-data",
         "args": {
             "upload__file": {
@@ -184,7 +184,7 @@ def upload(ctx, upload__file):
 def download(ctx):
     """
     {
-        "title": "Download File",
+        "title": "Download file",
         "target": "_blank"
     }
     """
@@ -197,40 +197,38 @@ def download(ctx):
 def confirm(ctx):
     """
     {
-        "title": "Popup Confirm",
+        "title": "Popup confirm",
         "popup": "confirm"
     }
     """
     return "confirmed"
 
+
 @form.onpage
 def multi_checkbox(ctx, boxes, boxes2):
     """
     {
-        "title": "Multi Checkbox",
+        "title": "Multi checkbox",
         "args": {
             "boxes": {
                 "input": "checkbox",
                 "desc": "Fruit",
                 "options": {
-                   "a": "apple",
-                   "b": "banana",
-                   "c": "original"
+                   "1": "apple",
+                   "2": "banana",
+                   "3": "original"
                 }
             },
             "boxes2": {
                 "input": "checkbox",
                 "desc": "Animinal",
                 "options": {
-                   "d": "bee",
-                   "e": "dog",
-                   "f": "cat"
+                   "10": "bee",
+                   "20": "dog",
+                   "30": "cat"
                 }
             }
         }
     }
     """
-    # boxes return a,b,c
-    # boxes2 return d,e,f
-    #return -1, str(a) + "-" + str(b) + "-"+ str(c)
-    return 0, str(boxes) + "-" + str(boxes2) 
+    return 0, str(boxes) + "\n" + str(boxes2)
