@@ -30,26 +30,22 @@ $(document).ready(function () {
 
     // Cascading grid layout
     let $container = $('.masonry-container');
-    $container.imagesLoaded(function () {
-        $container.masonry({
-            columnWidth: '.item',
-            itemSelector: '.item'
-        });
-    });
-
-    // Reinitialize masonry inside each panel after the relative tab link is clicked -
+    // Reinitialize masonry inside each panel after the relative tab link is clicked
     $('a[data-toggle=tab]').each(function () {
-        let $this = $(this);
+        var $this = $(this);
         $this.on('shown.bs.tab', function () {
             $container.imagesLoaded(function () {
                 $container.masonry({
                     columnWidth: '.item',
-                    itemSelector: '.item'
+                    itemSelector: '.item',
+                    percentPosition: true,
+                    horizontalOrder: true,
                 });
             });
-
-        }); // end shown
-    }); // end each
+        }); //end shown
+    }); //end each
+    // Automatically click the first tab on page load
+    $("a[data-toggle=tab]").first().click();
 
     // Firstly Update Date Range Picker
     updateDatetimePicker();
