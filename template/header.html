@@ -121,12 +121,12 @@
                             更多<span class="caret"></span>
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a href="/{{ venv_name }}/admin/list" target="_blank">管理员</a></li>
+                                <li><a href="/{{ venv_name }}/admin/list" target="_blank">Admin</a></li>
                                 <li class="dropdown-submenu">
-                                    <a href="#">phpMyAdmin</a>
+                                    <a href="#">DB</a>
                                     <ul class="dropdown-menu">
-                                        <li><a href="http://wonderwall.club/nova/dev/phpmyadmin" target="_blank">dev</a></li>
-                                        <li><a href="https://minilarva.com/nova/test/phpmyadmin" target="_blank">test</a></li>
+                                        <li><a href="#" target="_blank">dev</a></li>
+                                        <li><a href="#" target="_blank">test</a></li>
                                     </ul>
                                 </li>
                                 <li class="dropdown-submenu">
@@ -134,7 +134,7 @@
                                     <ul class="dropdown-menu">
                                         <li><a href="#" target="_blank">dev</a></li>
                                         <li><a href="#" target="_blank">test</a></li>
-                                        <li><a href="#" target="_blank">idc</a></li>
+                                        <li><a href="#" target="_blank">prod</a></li>
                                     </ul>
                                 </li>
                             </ul>
@@ -142,9 +142,8 @@
                     </ul>
                     <form id="fuzzy-search" class="navbar-form form-inline navbar-right">
                         <div class="form-group has-feedback">
-                            <div class="input-group">
-                                <input id="search-keyword" name="search_input" data-provide="typeahead" type="text" value="" class="form-control" autocomplete="off" placeholder="Search...">
-                            </div>
+                            <input id="search-keyword" class="form-control" name="search_input" data-provide="typeahead" type="text" value="" autocomplete="off" placeholder="Search...">
+                            <span class="glyphicon glyphicon-search form-control-feedback" aria-hidden="true"></span>
                         </div>
                     </form>
                 </div>

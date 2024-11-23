@@ -422,7 +422,7 @@ def start_app(mode):
     # start standalone web app without nginx reverse proxy.
     handlers = [
         # static file handlers
-        (r"/(favicon.ico)", tornado.web.StaticFileHandler, {"path": ""}),
+        (r"/(favicon.ico)", tornado.web.StaticFileHandler, {"path": "./static/"}),
         (
             rf"/{config.VENV_NAME}/static/(.*)",
             tornado.web.StaticFileHandler,
