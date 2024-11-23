@@ -2,7 +2,7 @@ $(document).ready(function () {
     var curEnvName = window.location.pathname.split("/")[1];
     // refresh page at five clock on everyday.
     setInterval(function () {
-        var now = moment();
+        let now = moment();
         if (now.hour() == 5) {
             location.reload(true);
         }
@@ -29,7 +29,7 @@ $(document).ready(function () {
     })
 
     // Cascading grid layout
-    var $container = $('.masonry-container');
+    let $container = $('.masonry-container');
     $container.imagesLoaded(function () {
         $container.masonry({
             columnWidth: '.item',
@@ -39,7 +39,7 @@ $(document).ready(function () {
 
     // Reinitialize masonry inside each panel after the relative tab link is clicked -
     $('a[data-toggle=tab]').each(function () {
-        var $this = $(this);
+        let $this = $(this);
         $this.on('shown.bs.tab', function () {
             $container.imagesLoaded(function () {
                 $container.masonry({
@@ -54,10 +54,11 @@ $(document).ready(function () {
     // Firstly Update Date Range Picker
     updateDatetimePicker();
     initTypeaHead();
+    // Refer to https://github.com/josdejong/jsoneditor
+    // view mode: handle large JSON documents up to 500 MiB.
     var jsoneditor_options = {
-        mode: 'tree',
-        modes: ['tree', 'text'], // allowed modes
-        // modes: ['code', 'form', 'text', 'tree', 'view'], // allowed modes
+        mode: 'view',
+        modes: ['view', 'form', 'tree', 'code', 'text'],
     };
     var jsoneditorDict = {}
     $("div.jsoneditor").each(function () {
@@ -87,27 +88,26 @@ $(document).ready(function () {
         $("div.item .panel-title").each(function () {
             $card = $(this).parents("div.panel");
             if ($(this).text().trim() == $("form#fuzzy-search").find(":input[name='search_input']").val().trim()) {
-                var tab_id = $(this).parents("div.tab-pane").attr("id");
-                console.log("fuzzysearch： " + tab_id);
-                $("div#sidebar a." + tab_id).click();
+                var tabId = $(this).parents("div.tab-pane").attr("id");
+                // console.log("fuzzysearch： " + tab_id);
+                $("div#sidebar a." + tabId).click();
                 $('html, body').animate({
                     scrollTop: $(this).offset().top - 70 // substract top fixed navigation height（70px）
                 }, 100);
-                // set
-                $card.find("div.panel-heading").css({ "background-color": "#b40703", "border-color": "#b40703" });
+                $panelHead = $card.find("div.panel-heading");
+                // Store the original CSS
+                let originalBgColor = $panelHead.css('background-color');
+                // Set new background color
+                $panelHead.css({ "background-color": "#800080" });
                 $card.fadeOut("slow")
-                    .fadeIn("slow")
+                    .slideDown("slow")
                     .delay(10000) // delay 10 seconds
                     .queue(function (next) {
-                        $(this).find("div.panel-heading").css({ "background-color": "#337ab7", "border-color": "#337ab7" });
-                        console.log("fuzzysearch: reset card head background-color");
+                        $panelHead.css({ "background-color": originalBgColor });
                         next();
                     });
-                return;
             }
         });
-
-        console.log("fuzzysearch done.");
         return false;
     });
 
