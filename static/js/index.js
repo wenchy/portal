@@ -56,14 +56,14 @@ $(document).ready(function () {
     initTypeaHead();
     // Refer to https://github.com/josdejong/jsoneditor
     // view mode: handle large JSON documents up to 500 MiB.
-    var jsoneditor_options = {
-        mode: 'view',
+    let jsoneditorOptions = {
         modes: ['view', 'form', 'tree', 'code', 'text'],
+        mode: 'view'
     };
     var jsoneditorDict = {}
     $("div.jsoneditor").each(function () {
         // jsoneditor need convert jQuery object to JavaScript object
-        jsoneditorDict[$(this).attr("id")] = new JSONEditor($(this).get(0), jsoneditor_options);
+        jsoneditorDict[$(this).attr("id")] = new JSONEditor($(this).get(0), jsoneditorOptions);
     });
 
     $("form#fuzzy-search").submit(function (e) {
@@ -171,15 +171,13 @@ $(document).ready(function () {
         var lastResponseLen = false;
         var $resultPanel = $("#commonResultPanel pre");
         var $logPanel = $('#commonResultModal pre')
-        var jsoneditor;
-        var $jsoneditors = $(this).parents("div.tab-pane").find("div.jsoneditor");
-        var isEditorForm = false;
+        let jsoneditor = null;
+        let $jsoneditors = $(this).parents("div.tab-pane").find("div.jsoneditor");
         if ($jsoneditors.length > 0) {
             jsoneditor = jsoneditorDict[$jsoneditors.attr("id")];
             console.log("before jsoneditor-content: " + $jsoneditors.attr("id") + ", content: " + jsoneditor.getText())
-            // set jsoneditor's content
+            // Set jsoneditor's content
             $(this).find(":input[name='_jsoneditor_content']").val(jsoneditor.getText());
-            isEditorForm = true;
         }
 
         // checkbox
@@ -243,13 +241,12 @@ $(document).ready(function () {
                 $resultPanel.append("<strong>Action" + batchProcessTip + ": " + operationDesc + "</strong>\n\n");
             },
             success: function (data, name) {
-                if (isEditorForm) {
+                if (jsoneditor) {
                     try {
-                        var jsoneditor_content = JSON.parse(data);
-                        console.log(jsoneditor_content);
-                        jsoneditor.set(jsoneditor_content);
-                    }
-                    catch (err) {
+                        var content = JSON.parse(data);
+                        // console.log(content);
+                        jsoneditor.set(content);
+                    } catch (err) {
                         console.log('json parse exception: ' + err);
                     }
                 }
