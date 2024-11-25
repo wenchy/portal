@@ -29,7 +29,7 @@ def process_server_time(ctx, svr_name, datetime_str, opcode):
             "svr_name": {
                 "desc": "Server",
                 "tip": "default: all",
-                "input": "select",
+                "input": "selectpicker",
                 "options": "$gen_server_dict"
             },
             "datetime_str": {
