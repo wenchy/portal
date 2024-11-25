@@ -274,7 +274,14 @@ def execute_request(handler: tornado.web.RequestHandler, *args, **kwargs):
             # assume as file if arg_name's suffix is '__file'
             arg = handler.request.files.get(arg_name, None)
         else:
-            arg = handler.get_argument(arg_name, None)
+            # searches both the query and body arguments
+            arg_list = handler.get_arguments(arg_name)
+            if len(args) == 0:
+                arg = None 
+            elif len(args) == 1:
+                arg = arg_list[0]
+            else:
+                arg = arg_list
         # TODO(wenchy): check if required argument
         if not arg:
             arg = ""  # default empty str

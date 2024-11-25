@@ -239,8 +239,10 @@ A pluggable 6-level authentication module:
 
 ## References
 
-- [jsoneditor](https://github.com/josdejong/jsoneditor)
 - [bootstrap v3.4](https://getbootstrap.com/docs/3.4/)
-- [python inspect](https://docs.python.org/3/library/inspect.html)
-- [python typing](https://docs.python.org/3/library/typing.html)
-- [python function](https://docs.python.org/3/tutorial/controlflow.html#defining-functions)
+- [Masonry: Cascading grid layout library](https://masonry.desandro.com/)
+- [bootstrap-select](https://developer.snapappointments.com/bootstrap-select/)
+- [JSON Editor: A web-based tool to view, edit, format, and validate JSON](https://github.com/josdejong/jsoneditor)
+- [Python inspect](https://docs.python.org/3/library/inspect.html)
+- [Python typing](https://docs.python.org/3/library/typing.html)
+- [Python function](https://docs.python.org/3/tutorial/controlflow.html#defining-functions)

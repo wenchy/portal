@@ -29,7 +29,7 @@ def process_server_time(ctx, svr_name, datetime_str, opcode):
             "svr_name": {
                 "desc": "Server",
                 "tip": "default: all",
-                "input": "select",
+                "input": "selectpicker",
                 "options": "$gen_server_dict"
             },
             "datetime_str": {
@@ -222,6 +222,36 @@ def multi_checkbox(ctx, boxes, boxes2):
             "boxes2": {
                 "input": "checkbox",
                 "desc": "Animinal",
+                "options": {
+                   "10": "bee",
+                   "20": "dog",
+                   "30": "cat"
+                }
+            }
+        }
+    }
+    """
+    return 0, str(boxes) + "\n" + str(boxes2)
+
+@form.onpage
+def selectpicker(ctx, boxes, boxes2):
+    """
+    {
+        "title": "Select picker",
+        "args": {
+            "boxes": {
+                "desc": "Fruit",
+                "input": "selectpicker",
+                "options": {
+                   "1": "apple",
+                   "2": "banana",
+                   "3": "original"
+                }
+            },
+            "boxes2": {
+                "desc": "Animinal",
+                "input": "selectpicker",
+                "multiple": true,
                 "options": {
                    "10": "bee",
                    "20": "dog",
