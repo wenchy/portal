@@ -102,14 +102,13 @@
                         {% elif arg['input'] == 'checkbox' %}
                             <div class="{{ form_group_class }} form-group form-group-sm" {% if 'tip' in arg %} data-toggle="tooltip" data-placement="top" title="{{ arg['tip'] }}" {% end %}>
                                 <label class="{{ label_class }}">{{ arg['desc'] }}</label>
-                                <div class="checkbox {{ input_class }}" id="{{ arg_name }}">
+                                <div class="checkbox {{ input_class }}">
                                     {% for value, desc in arg['options'].items() %} 
                                     <label>
-                                        <input type="checkbox" name="{{arg_name}}-sub" value="{{ value }}"> {{ desc }}
+                                        <input type="checkbox" name="{{arg_name}}" value="{{ value }}"> {{ desc }}
                                     </label>
                                      {% end %}
                                 </div>
-                                <input name="{{ arg_name }}" class="hidden">
                             </div>
                         {% elif arg['input'] == 'textarea' %} 
                             <div class="{{ form_group_class }} form-group form-group-sm" {% if 'tip' in arg %} data-toggle="tooltip" data-placement="top" title="{{ arg['tip'] }}" {% end %}>

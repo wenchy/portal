@@ -176,24 +176,7 @@ $(document).ready(function () {
             $(this).find(":input[name='_jsoneditor_content']").val(jsoneditor.getText());
         }
 
-        // checkbox
-        var outerThis = this;
-        var $checkboxList = $(this).find("div.checkbox");
-        $checkboxList.each(function () {
-            var $checkbox = $(this);
-            if ($checkbox.length > 0) {
-                // process if checkbox exists
-                console.log("get checkbox id: " + $checkbox.attr("id"))
-                checkboxId = $checkbox.attr("id")
-                checkboxSubId = checkboxId + "-sub"
-                let args = [];
-                $(this).find(":input[name='" + checkboxSubId + "']:checked").each(function () {
-                    args.push($(this).val());
-                });
-                console.log("all checked boxes: " + args.join(','))
-                $(outerThis).find(":input[name='" + checkboxId + "']").val(args);
-            }
-        })
+        // NOTE: unchecked checkboxes will not included in the serialized string.
         var formData = $(this).serialize();
 
         var ajaxCache = true;
