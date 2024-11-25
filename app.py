@@ -277,15 +277,12 @@ def execute_request(handler: tornado.web.RequestHandler, *args, **kwargs):
             # searches both the query and body arguments
             arg_list = handler.get_arguments(arg_name)
             if len(arg_list) == 0:
-                arg = None 
+                # TODO(wenchy): check if required argument
+                arg = None
             elif len(arg_list) == 1:
                 arg = arg_list[0]
             else:
                 arg = arg_list
-        # TODO(wenchy): check if required argument
-        if not arg:
-            arg = ""  # default empty str
-            # assert False, "argument '%s' not provided" % arg_name
         args.append(arg)
 
     ecode = -1

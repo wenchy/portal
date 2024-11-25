@@ -69,7 +69,7 @@
                                 </datalist>
                             {% else %}
                                 <!--  default: select -->
-                                <select class="form-control selectpicker" data-live-search="true" data-width="fit" name="environ-zone" id="environ-zone" onChange="updateZone()">
+                                <select class="form-control selectpicker" data-live-search="true" data-size="10" data-width="fit" name="environ-zone" id="environ-zone" onChange="updateZone()">
                                     {% for zone_id, zone_conf in zones.items() %}
                                         <option value="{{ zone_id }}">{{ zone_conf['desc'] }}</option>
                                     {% end %}

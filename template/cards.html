@@ -92,7 +92,7 @@
                             <div class="{{ form_group_class }} form-group form-group-sm {% if 'submit' in func and func['submit'] == arg_name %} hidden {% end %}" {% if 'tip' in arg %} data-toggle="tooltip" data-placement="top" title="{{ arg['tip'] }}" {% end %}>
                                 <label class="{{ label_class }}">{{ arg['desc'] }}</label>
                                 <div class="{{ input_class }}">
-                                    <select name="{{ arg_name }}" class="form-control input-sm selectpicker" data-live-search="true" data-width="100%" {{ arg['status'] }} {% if 'multiple' in arg %} multiple {% end %}>
+                                    <select name="{{ arg_name }}" class="form-control input-sm selectpicker" data-live-search="true" data-size="10" data-width="100%" {{ arg['status'] }} {% if 'multiple' in arg %} multiple {% end %}>
                                         {% for value,desc in arg['options'].items() %} 
                                             <option value="{{ value }}">{{ desc }}</option>
                                         {% end %}
