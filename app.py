@@ -276,9 +276,9 @@ def execute_request(handler: tornado.web.RequestHandler, *args, **kwargs):
         else:
             # searches both the query and body arguments
             arg_list = handler.get_arguments(arg_name)
-            if len(args) == 0:
+            if len(arg_list) == 0:
                 arg = None 
-            elif len(args) == 1:
+            elif len(arg_list) == 1:
                 arg = arg_list[0]
             else:
                 arg = arg_list
