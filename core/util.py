@@ -13,6 +13,7 @@ import fnmatch
 import fcntl
 import struct
 import traceback
+import typing
 
 import tornado
 from google.protobuf.message import Message as ProtoBufMessage
@@ -57,16 +58,19 @@ def get_ordered_funcs_by_module(module):
     return ordered_funcs
 
 
-def excelviewer(table_name, sheet_name):
-    def decorator(func):
-        func.__excelviewer__ = (table_name, sheet_name)
-        return func
-
-    return decorator
-
-
-def get_func_args(func):
+def get_func_args(func: typing.Callable) -> inspect.ArgSpec:
     return inspect.getargspec(func)
+
+
+def get_func_form(func: typing.Callable) -> collections.OrderedDict[str, any]:
+    return getattr(func, "__html_form__")
+
+
+def is_list_argument(func: typing.Callable, arg_name: str) -> bool:
+    form = get_func_form(func)
+    is_checkbox = form["args"][arg_name]["input"] == "checkbox"
+    is_multiple = "multiple" in form["args"][arg_name]
+    return is_checkbox or is_multiple
 
 
 def get_module_by_name(module_name):

@@ -279,7 +279,7 @@ def execute_request(handler: tornado.web.RequestHandler, *args, **kwargs):
             if len(arg_list) == 0:
                 # TODO(wenchy): check if required argument
                 arg = None
-            elif len(arg_list) == 1:
+            elif len(arg_list) == 1 and not util.is_list_argument(func, arg_name):
                 arg = arg_list[0]
             else:
                 arg = arg_list

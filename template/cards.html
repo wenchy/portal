@@ -93,8 +93,8 @@
                                 <label class="{{ label_class }}">{{ arg['desc'] }}</label>
                                 <div class="{{ input_class }}">
                                     <select name="{{ arg_name }}" class="form-control input-sm selectpicker" data-live-search="true" data-size="10" data-width="100%" {{ arg['status'] }} {% if 'multiple' in arg %} multiple {% end %}>
-                                        {% for value,desc in arg['options'].items() %} 
-                                            <option value="{{ value }}">{{ desc }}</option>
+                                        {% for value,desc in arg['options'].items() %}
+                                            <option value="{{ value }}" {% if value != desc %}data-subtext="{{ value }}"{% end %}>{{ desc }}</option>
                                         {% end %}
                                     </select>
                                 </div>
