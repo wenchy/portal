@@ -5,6 +5,7 @@ A pluggable N-level authentication module.
 import base64
 import collections
 import hashlib
+from http import HTTPStatus
 from core.logger import log
 import config
 from core import util
@@ -22,7 +23,7 @@ def auth_anonym(handler):
 # within an external database).
 def auth_basic(handler):
     def _unauthorized():
-        handler.set_status(401)
+        handler.set_status(HTTPStatus.UNAUTHORIZED)
         handler.set_header("WWW-Authenticate", "Basic realm=Restricted")  # noqa
         # handler._transforms = []
         # handler.finish()

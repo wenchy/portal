@@ -16,7 +16,6 @@ DEMONSTRATION
 """
 
 import collections
-import json
 import traceback
 import tornado.websocket
 import tornado.gen
@@ -26,6 +25,7 @@ import tornado.httpserver
 import tornado.web
 import os
 import sys
+from http import HTTPStatus
 
 from core.logger import log
 from core import context
@@ -275,10 +275,21 @@ def execute_request(handler: tornado.web.RequestHandler, *args, **kwargs):
         else:
             # searches both the query and body arguments
             arg_list = handler.get_arguments(param.name)
-            if len(arg_list) == 1 and not util.is_list_argument(func, param.name):
-                arg = arg_list[0]
-            else:
+            if util.is_list_argument(func, param.name):
                 arg = arg_list
+            else:
+                if len(arg_list) == 0:
+                    arg = None
+                elif len(arg_list) == 1:
+                    arg = arg_list[0]
+                else:
+                    handler.set_status(HTTPStatus.BAD_REQUEST)
+                    handler.write(
+                        f"scalar param {param.name} has too many arguments: {arg_list}"
+                    )
+                    handler.finish()
+                    return
+
         args.append(arg)
 
     ecode = -1
