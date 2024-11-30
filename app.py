@@ -266,20 +266,16 @@ def execute_request(handler: tornado.web.RequestHandler, *args, **kwargs):
 
     log.debug("ctx: %s", ctx.debug_str())
 
-    func_args = util.get_func_args(func)
     args = []
-    for arg_name in func_args[0]:
-        log.debugCtx(ctx, "arg_name: " + arg_name)
-        if arg_name.endswith("__file"):
-            # assume as file if arg_name's suffix is '__file'
-            arg = handler.request.files.get(arg_name, None)
+    for param in util.get_func_parameters(func):
+        log.debugCtx(ctx, "arg_name: " + param.name)
+        if param.name.endswith("__file"):
+            # assume as file if param name's suffix is '__file'
+            arg = handler.request.files.get(param.name, None)
         else:
             # searches both the query and body arguments
-            arg_list = handler.get_arguments(arg_name)
-            if len(arg_list) == 0:
-                # TODO(wenchy): check if required argument
-                arg = None
-            elif len(arg_list) == 1 and not util.is_list_argument(func, arg_name):
+            arg_list = handler.get_arguments(param.name)
+            if len(arg_list) == 1 and not util.is_list_argument(func, param.name):
                 arg = arg_list[0]
             else:
                 arg = arg_list
@@ -465,16 +461,16 @@ def start_app(mode):
         Usage()
         exit(1)
 
-    def periodic_task():
-        log.info(
-            "periodic_task at "
-            + "tornado.process.task_id: "
-            + str(tornado.process.task_id())
-        )
+    # def periodic_task():
+    #     log.info(
+    #         "periodic_task at "
+    #         + "tornado.process.task_id: "
+    #         + str(tornado.process.task_id())
+    #     )
 
-    log.info("tornado.process.task_id: " + str(tornado.process.task_id()))
-    if not tornado.process.task_id():
-        tornado.ioloop.PeriodicCallback(periodic_task, 10 * 1000).start()
+    # log.info("tornado.process.task_id: " + str(tornado.process.task_id()))
+    # if not tornado.process.task_id():
+    #     tornado.ioloop.PeriodicCallback(periodic_task, 10 * 1000).start()
 
     for hanlder in handlers:
         print(f"""Route "{hanlder[0]}" -> {hanlder[1].__name__}""")
