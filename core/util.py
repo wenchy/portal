@@ -58,8 +58,9 @@ def get_ordered_funcs_by_module(module):
     return ordered_funcs
 
 
-def get_func_args(func: typing.Callable) -> inspect.ArgSpec:
-    return inspect.getargspec(func)
+def get_func_parameters(func: typing.Callable) -> typing.List[inspect.Parameter]:
+    sig = inspect.signature(func)
+    return sig.parameters.values()
 
 
 def get_func_form(func: typing.Callable) -> collections.OrderedDict[str, any]:
@@ -208,7 +209,7 @@ def exec_cmd(cmd, shell=True, need_log=True, with_exception=True, **kwargs):
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
-        **kwargs
+        **kwargs,
     )
     stdout, stderr = process.communicate()
     status = process.poll()

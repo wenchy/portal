@@ -7,6 +7,7 @@ import collections
 from core import form
 from core import util
 from core.context import Context
+from typing import *
 
 
 # NOTE: function which returns dict can be injected into form "options"
@@ -66,7 +67,7 @@ _ITEM_DICT["100003"] = "Sword"
 
 
 @form.onpage
-def modify_item(ctx, id, num):
+def modify_item(ctx, id: int, num: int):
     """
     {
         "title": "Modify item",
@@ -81,7 +82,11 @@ def modify_item(ctx, id, num):
         }
     }
     """
-    return f"id: {id}, num: {num}"
+    type1 = type(id).__name__
+    output = f"id: {id}, type is '{type1}'\n"
+    type2 = type(num).__name__
+    output += f"num: {num}, type is '{type2}'"
+    return output
 
 
 @form.onpage
@@ -158,7 +163,7 @@ def send_mail(ctx, title, content, attachments=""):
     if attachments:
         attachments = [map(int, e.split(":")) for e in attachments.split(",")]
 
-    return title, content, attachments
+    return [title, content, attachments]
 
 
 @form.onpage
@@ -205,14 +210,13 @@ def confirm(ctx):
 
 
 @form.onpage
-def multi_checkbox(ctx, boxes, boxes2):
+def multi_checkbox(ctx, boxes, boxes2: List[int]):
     """
     {
         "title": "Multi checkbox",
         "args": {
             "boxes": {
                 "input": "checkbox",
-                "desc": "Fruit",
                 "options": {
                    "1": "apple",
                    "2": "banana",
@@ -221,7 +225,6 @@ def multi_checkbox(ctx, boxes, boxes2):
             },
             "boxes2": {
                 "input": "checkbox",
-                "desc": "Animinal",
                 "options": {
                    "10": "bee",
                    "20": "dog",
@@ -231,16 +234,20 @@ def multi_checkbox(ctx, boxes, boxes2):
         }
     }
     """
-    return 0, str(boxes) + "\n" + str(boxes2)
+    type1 = type(boxes).__name__
+    output = f"Fruit: {boxes}, type is '{type1}'\n"
+    type2 = type(boxes2).__name__
+    output += f"Animinal: {boxes2}, type is '{type2}'"
+    return output
+
 
 @form.onpage
-def selectpicker(ctx, boxes, boxes2):
+def selectpicker(ctx: Context, box: int, boxes2: List[int]):
     """
     {
         "title": "Select picker",
         "args": {
-            "boxes": {
-                "desc": "Fruit",
+            "box": {
                 "input": "selectpicker",
                 "options": {
                    "1": "apple",
@@ -249,7 +256,6 @@ def selectpicker(ctx, boxes, boxes2):
                 }
             },
             "boxes2": {
-                "desc": "Animinal",
                 "input": "selectpicker",
                 "multiple": true,
                 "options": {
@@ -261,4 +267,8 @@ def selectpicker(ctx, boxes, boxes2):
         }
     }
     """
-    return 0, str(boxes) + "\n" + str(boxes2)
+    type1 = type(box).__name__
+    output = f"box: {box}, type is '{type1}'\n"
+    type2 = type(boxes2).__name__
+    output += f"boxes2: {boxes2}, type is '{type2}'"
+    return output

@@ -1,70 +1,133 @@
 import json
-import inspect
 import collections
 from core.logger import log
 import config
 import traceback
+from typing import Any, Type, get_type_hints
+import inspect
+import functools
+
+
+def convert_type(value: Any, target_type: Type) -> Any:
+    """Convert value to the target_type."""
+    if target_type == int:
+        return int(value)
+    elif target_type == float:
+        return float(value)
+    elif target_type == str:
+        return str(value)
+    elif target_type == bool:
+        return bool(value)
+    elif hasattr(
+        target_type, "__origin__"
+    ):  # Handle generic types like List, Dict, etc.
+        origin = target_type.__origin__
+        if origin is list:
+            item_type = target_type.__args__[0]
+            return [convert_type(item, item_type) for item in value]
+        elif origin is dict:
+            key_type, value_type = target_type.__args__
+            return {
+                convert_type(k, key_type): convert_type(v, value_type)
+                for k, v in value.items()
+            }
+        elif origin is tuple:
+            item_types = target_type.__args__
+            return tuple(
+                convert_type(value[i], item_types[i]) for i in range(len(item_types))
+            )
+    return value  # Return the original value if no conversion is needed
+
+
+def type_converter(func):
+    """
+    Decorator to convert argument types based on type annotations,
+    but leaves the types unchanged if no annotations are provided.
+    """
+
+    @functools.wraps(func)  # Preserve the original function's metadata
+    def wrapper(*args, **kwargs):
+        # Get the function's signature and type hints
+        sig = inspect.signature(func)
+        type_hints = get_type_hints(func)
+
+        # Convert positional arguments
+        converted_args = []
+        for param, arg in zip(sig.parameters.values(), args):
+            if param.name in type_hints:  # Check if there's a type hint
+                converted_args.append(convert_type(arg, type_hints[param.name]))
+            else:
+                converted_args.append(arg)  # Leave unchanged if no annotation
+
+        # Convert keyword arguments
+        converted_kwargs = {}
+        for k, v in kwargs.items():
+            if k in type_hints:  # Check if there's a type hint
+                converted_kwargs[k] = convert_type(v, type_hints[k])
+            else:
+                converted_kwargs[k] = v  # Leave unchanged if no annotation
+
+        return func(*converted_args, **converted_kwargs)
+
+    return wrapper
 
 
 def onpage(func):
     """
-    onpage renders the Python function to HTML form.
+    - Rendering a Python function to an HTML form.
+    - Convert argument types based on type annotations.
     """
-    html_form(func)
-    return func
+
+    # Set the __html_form__ attribute on the wrapper
+    func.__html_form__ = parse_html_form(func)
+
+    return type_converter(func)
 
 
-def html_form(func):
-    argspec = inspect.getargspec(func)
-    defaults_len = 0
-    if argspec[3]:
-        defaults_len = len(argspec[3])
-    default_start = len(argspec[0]) - defaults_len
-    index = 0
+def parse_html_form(func):
+    """A powerful tool for generating HTML forms based on function signatures and documentation"""
+    signature = inspect.signature(func)
     args = collections.OrderedDict()
-    for arg in argspec[0]:
-        if index >= default_start:
-            args[arg] = argspec[3][index - default_start]
+
+    # Collect argument names and default values
+    for param in signature.parameters.values():
+        if param.default is param.empty:
+            args[param.name] = ""
         else:
-            args[arg] = ""
-        index += 1
-    # Tip of initial form struct: {'title': '','tip': '',  'args': {}}
-    ordered_form = collections.OrderedDict()
+            args[param.name] = param.default
+
+    # Initialize the ordered form structure
+    # E.g.: {'title': '', 'args': {}}
     ordered_form = {"title": func.__name__, "args": collections.OrderedDict()}
 
     def parse_form(form, args, ordered_form):
-        if "title" in form:
-            ordered_form["title"] = form["title"]
-        if "target" in form:
-            ordered_form["target"] = form["target"]
-        if "method" in form:
-            ordered_form["method"] = form["method"]
-        if "enctype" in form:
-            ordered_form["enctype"] = form["enctype"]
-        if "tip" in form:
-            ordered_form["tip"] = form["tip"]
-        if "popup" in form:
-            ordered_form["popup"] = form["popup"]
-        if "submit" in form:
-            ordered_form["submit"] = form["submit"]
-        if "layout" in form:
-            ordered_form["layout"] = form["layout"]
-        if "theme" in form:
-            ordered_form["theme"] = form["theme"]
-        if not "args" in form:
+        # Populate ordered_form based on the form input
+        form_props = [
+            "title",
+            "target",
+            "method",
+            "enctype",
+            "tip",
+            "popup",
+            "submit",
+            "layout",
+            "theme",
+        ]
+        for key in form_props:
+            if key in form:
+                ordered_form[key] = form[key]
+
+        if "args" not in form:
             form["args"] = {}
+
         # Required: desc, input, and default
         for arg_name, default in args.items():
             if arg_name in form["args"]:
                 ordered_form["args"][arg_name] = form["args"][arg_name]
-                if not "desc" in form["args"][arg_name]:
-                    ordered_form["args"][arg_name]["desc"] = arg_name
-                if not "input" in form["args"][arg_name]:
-                    ordered_form["args"][arg_name]["input"] = "text"
-                if not "default" in form["args"][arg_name]:
-                    ordered_form["args"][arg_name]["default"] = default
-                if not "status" in form["args"][arg_name]:
-                    ordered_form["args"][arg_name]["status"] = ""
+                ordered_form["args"][arg_name].setdefault("desc", arg_name)
+                ordered_form["args"][arg_name].setdefault("input", "text")
+                ordered_form["args"][arg_name].setdefault("default", default)
+                ordered_form["args"][arg_name].setdefault("status", "")
             else:
                 ordered_form["args"][arg_name] = {
                     "desc": arg_name,
@@ -73,10 +136,10 @@ def html_form(func):
                     "status": "",
                 }
 
-            # evaluate dynamic values, pattern: "$VAR"
+            # Evaluate dynamic values, pattern: "$VAR"
             for key, value in ordered_form["args"][arg_name].items():
                 log.debug("func:%s|key:%s|value:%s", func.__name__, key, value)
-                if isinstance(value, str) and value and value[0] == "$":
+                if isinstance(value, str) and value.startswith("$"):
                     retval = eval(value[1:], None, func.__globals__)
                     if callable(retval):
                         retval = retval()
@@ -111,10 +174,9 @@ def html_form(func):
             }
             ordered_form["args"][arg_name]["default"] = default
 
-    if "layout" not in ordered_form:
-        ordered_form["layout"] = "1-column"
-    if "theme" not in ordered_form:
-        ordered_form["theme"] = "primary"
+    # Set default layout and theme
+    ordered_form.setdefault("layout", "1-column")
+    ordered_form.setdefault("theme", "primary")
 
     if config.VENV_NAME in config.DANGER_VENVS:
         log.debug(f"{config.VENV_NAME}: need confirm when submit the form")
@@ -122,6 +184,5 @@ def html_form(func):
         ordered_form["theme"] = "danger"
 
     # log.debug(json.dumps(form))
-    func.__html_form__ = ordered_form
     # log.debug(str(ordered_form))
-    return func
+    return ordered_form
