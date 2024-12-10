@@ -356,6 +356,7 @@ def execute_request(handler: tornado.web.RequestHandler, *args, **kwargs):
 
 
 @auth.auth(config.DEPLOYED_ENV["auth"]["controller"])
+@auth.check_executability
 class Execute(tornado.web.RequestHandler):
 
     def post(self, *args, **kwargs):

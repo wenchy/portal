@@ -51,7 +51,7 @@ def auth_basic(handler):
 
     # TODO: actually verify provided credentials :-)
     combined = config.AUTHS["basics"] | config.AUTHS["admins"]
-    if username in combined and password == combined[username]:
+    if username in combined and password == combined[username]["password"]:
         return True, username
     else:
         return _unauthorized(), username
@@ -168,6 +168,48 @@ def auth(auth_type="basic"):
         return handler_class
 
     return decorator
+
+
+# authorization
+def check_perm(
+    username: str, env_name: str, module_name: str, func_name: str, opcode: int
+) -> bool:
+    return False
+
+
+def check_executability(handler_class):
+    def wrap_execute(handler_execute):
+        @util.exception_catcher
+        def _execute(self, transforms, *args, **kwargs):
+            username = kwargs["username"]
+            module_name = self.get_argument("_module", "")
+            func_name = self.get_argument("_func", "")
+            zone_id = int(self.get_argument("_zone"), 0)
+            env_name = config.ZONES[zone_id]["env"]["name"]
+            opcode = int(self.get_argument("opcode", 0))
+            log.debug(
+                f"check perm, username: {username}, env: {env_name}, module: {module_name}, func: {func_name}, opcode: {opcode}"
+            )
+
+            ok = check_perm(username, env_name, module_name, func_name, opcode)
+
+            if not ok:
+                log.error("check perm failed")
+                self.set_status(HTTPStatus.FORBIDDEN)
+                self.write("<h3>Forbidden</h3>")
+                self.write(
+                    f"You are not allowed to access env: {env_name}, module: {module_name}, func: {func_name}, opcode: {opcode}"
+                )
+                self._transforms = []
+                self.finish()
+                return False
+            return handler_execute(self, transforms, *args, **kwargs)
+
+        return _execute
+
+    handler_class._execute = wrap_execute(handler_class._execute)
+
+    return handler_class
 
 
 def main():
