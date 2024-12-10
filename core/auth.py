@@ -50,20 +50,20 @@ def auth_basic(handler):
     username, password = auth_decoded.decode("utf-8").split(":", 2)
 
     # TODO: actually verify provided credentials :-)
-    user_list = config.AUTHS["basics"] + config.AUTHS["admins"]
-    if username in user_list and username == password:
+    combined = config.AUTHS["basics"] | config.AUTHS["admins"]
+    if username in combined and password == combined[username]:
         return True, username
     else:
         return _unauthorized(), username
 
 
 def auth_api(handler):
-    appid = str(handler.get_argument("appid", None))
+    appid = handler.get_argument("appid", "")
     log.debug("appid: " + appid)
     if appid and appid in config.AUTHS["apis"]:
         appkey = config.AUTHS["apis"][appid]
-        signature = str(handler.get_argument("signature", ""))
-        timestamp = str(handler.get_argument("timestamp", 0))
+        signature = handler.get_argument("signature", "")
+        timestamp = handler.get_argument("timestamp", "")
         encoded = hashlib.md5((appkey + timestamp).encode("utf-8")).hexdigest()
         log.debug("encoded = {} | signature = {}".format(encoded, signature))
         if encoded == signature:
