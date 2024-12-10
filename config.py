@@ -103,12 +103,12 @@ AUTHS = {
     },
     "basics": [
         # 测试组
-        "john",
+        "admin",
     ],
     "admins": [
         # 运营组
         # 后台组
-        "john",
+        "admin",
         # 前台组
     ],
 }

@@ -198,7 +198,7 @@ class ControllerList(tornado.web.RequestHandler):
             }
         # log.debug(tabs)
         self.render(
-            "./template/index.html",
+            "./templates/index.html",
             tabs=tabs,
             venv_name=config.VENV_NAME,
             deployed_venv=config.DEPLOYED_ENV,
@@ -391,7 +391,7 @@ class AdminList(tornado.web.RequestHandler):
 
         # log.debug(tabs)
         self.render(
-            "./template/index.html",
+            "./templates/index.html",
             tabs=tabs,
             venv_name=config.VENV_NAME,
             deployed_venv=config.DEPLOYED_ENV,

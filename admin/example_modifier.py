@@ -7,7 +7,7 @@ from core.context import Context
 
 
 @form.onpage
-def manage_whilelist(ctx, whitelist_type, content, opcode):
+def manage_whilelist(ctx: Context, whitelist_type: int, content: str, opcode: int):
     """
     {
         "title": "Whitelist",

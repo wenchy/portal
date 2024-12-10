@@ -22,7 +22,7 @@ def gen_server_dict():
 
 
 @form.onpage
-def process_server_time(ctx, svr_name, datetime_str, opcode):
+def process_server_time(ctx: Context, svr_name: str, datetime_str: str, opcode: int):
     """
     {
         "title": "Server time",
@@ -50,8 +50,6 @@ def process_server_time(ctx, svr_name, datetime_str, opcode):
         "submit": "opcode"
     }
     """
-    opcode = int(opcode)
-
     offset = util.strf2time(datetime_str) - int(time.time())
 
     return f"server {svr_name} time offset: {offset}"
@@ -67,7 +65,7 @@ _ITEM_DICT["100003"] = "Sword"
 
 
 @form.onpage
-def modify_item(ctx, id: int, num: int):
+def modify_item(ctx: Context, id: int, num: int):
     """
     {
         "title": "Modify item",
@@ -90,7 +88,7 @@ def modify_item(ctx, id: int, num: int):
 
 
 @form.onpage
-def manage_whilelist(ctx, whitelist_type, content, opcode):
+def manage_whilelist(ctx: Context, whitelist_type: int, content: str, opcode: int):
     """
     {
         "title": "Whitelist",
@@ -125,7 +123,7 @@ def manage_whilelist(ctx, whitelist_type, content, opcode):
 
 
 @form.onpage
-def send_mail(ctx, title, content, attachments=""):
+def send_mail(ctx: Context, title: str, content: str, attachments: str = ""):
     """
     {
         "title": "Send mail",
@@ -167,7 +165,7 @@ def send_mail(ctx, title, content, attachments=""):
 
 
 @form.onpage
-def upload(ctx, upload__file):
+def upload(ctx: Context, upload__file):
     """
     {
         "title": "Upload file",
@@ -186,7 +184,7 @@ def upload(ctx, upload__file):
 
 
 @form.onpage
-def download(ctx):
+def download(ctx: Context):
     """
     {
         "title": "Download file",
@@ -199,7 +197,7 @@ def download(ctx):
 
 
 @form.onpage
-def confirm(ctx):
+def confirm(ctx: Context):
     """
     {
         "title": "Popup confirm",
@@ -210,7 +208,7 @@ def confirm(ctx):
 
 
 @form.onpage
-def multi_checkbox(ctx, boxes, boxes2: List[int]):
+def multi_checkbox(ctx: Context, boxes, boxes2: List[int]):
     """
     {
         "title": "Multi checkbox",
@@ -278,7 +276,7 @@ def selectpicker(ctx: Context, box: int, boxes2: List[int]):
 def multi_form_target(ctx: Context, zone: int, opcode: int, upload__file):
     """
     {
-        "title": "Multi Form Target",
+        "title": "Multi form target",
         "enctype": "multipart/form-data",
         "args": {
             "zone": {

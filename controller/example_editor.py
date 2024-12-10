@@ -8,7 +8,7 @@ from core.context import Context
 
 
 @form.onpage
-def manage_player(ctx, _jsoneditor_content, opcode):
+def manage_player(ctx: Context, _jsoneditor_content: str, opcode: int):
     """
     {
         "title": "Player data",
@@ -34,7 +34,6 @@ def manage_player(ctx, _jsoneditor_content, opcode):
     data["mapKey2"] = {"k1": True, "k2": False}
     json_data = json.dumps(data)
 
-    opcode = int(opcode)
     if opcode == 0:
         # TODO: query
         return json_data
