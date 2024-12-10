@@ -134,7 +134,7 @@ VENVS = collections.OrderedDict(
                             "envs": ["dev"],
                             "port": 8001,
                             "auth": {"controller": "basic", "admin": "admin"},
-                            "alert": True,
+                            "alert": False,
                             "domain": "https://xxx.com",
                         },
                     ),

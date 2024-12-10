@@ -235,9 +235,9 @@ def multi_checkbox(ctx, boxes, boxes2: List[int]):
     }
     """
     type1 = type(boxes).__name__
-    output = f"Fruit: {boxes}, type is '{type1}'\n"
+    output = f"boxes: {boxes}, type is '{type1}'\n"
     type2 = type(boxes2).__name__
-    output += f"Animinal: {boxes2}, type is '{type2}'"
+    output += f"boxes2: {boxes2}, type is '{type2}'"
     return output
 
 
@@ -272,3 +272,55 @@ def selectpicker(ctx: Context, box: int, boxes2: List[int]):
     type2 = type(boxes2).__name__
     output += f"boxes2: {boxes2}, type is '{type2}'"
     return output
+
+
+@form.onpage
+def multi_form_target(ctx: Context, zone: int, opcode: int, upload__file):
+    """
+    {
+        "title": "Multi Form Target",
+        "enctype": "multipart/form-data",
+        "args": {
+            "zone": {
+              "desc": "Zone",
+              "default": "1"
+            },
+            "opcode": {
+                "desc": "操作类型",
+                "input": "select",
+                "options": {
+                    "0": "Download",
+                    "1": "Upload",
+                    "2": "Run"
+                },
+                "targets": {
+                    "0": "_blank",
+                    "1": "_self",
+                    "2": "_blank"
+                }
+            },
+            "upload__file": {
+                "tip": "test.txt",
+                "desc": "File Path",
+                "input": "file"
+            }
+        },
+        "submit": "opcode"
+    }
+    """
+
+    if opcode == 0:
+        # download
+        filename = "test.txt"
+        content = "This file content is generated from portal."
+        return 0, content, {"content_type": "text/plain", "filename": filename}
+    elif opcode == 1:
+        # upload
+        content = upload__file[0]["body"]
+        return 0, content
+    elif opcode == 2:
+        filename = "result.txt"
+        content = f"Run zone: {zone}"
+        return 0, content, {"content_type": "text/plain", "filename": filename}
+
+    return -1, "not implemented"
