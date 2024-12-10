@@ -111,7 +111,7 @@ $(document).ready(function () {
     $("#tab_body").on("submit", "form", function () {
         var formTarget = $(this).attr("target");
         if (formTarget == "_blank") {
-            $(this).submit();
+            // No need to submit to avoid infinite recursion
             return;
         }
 
@@ -309,12 +309,26 @@ $(document).ready(function () {
 
     // multi submit form
     $("#tab_body").on("click", '.submit-btn[type="button"]', function (e) {
+        let form = $(this).parents("form");
         // data setter
-        $(this).parents("form").data('operation', $(this).text());
+        form.data('operation', $(this).text());
         var selectorStr = "select[name='" + $(this).attr("arg_name") + "']";
-        $(this).parents("form").find(selectorStr).val($(this).attr("arg_value"));
-        console.log(selectorStr + "  " + $(this).attr("arg_value") + " " + $(this).parents("form").find(selectorStr).val());
-        $(this).parents("form").submit();
+        form.find(selectorStr).val($(this).attr("arg_value"));
+        console.log(selectorStr + "  " + $(this).attr("arg_value") + " " + form.find(selectorStr).val());
+
+        let oldFormTarget = form.attr("target");
+
+        // If button has attr "data-form-target", then use it and restore it finally.
+        let dataFormTarget = $(this).attr("data-form-target");
+        if (dataFormTarget != undefined && oldFormTarget != dataFormTarget) {
+            form.attr("target", dataFormTarget);
+        }
+        // submit
+        form.submit();
+        // restore old form target
+        if (oldFormTarget != dataFormTarget) {
+            form.attr("target", oldFormTarget);
+        }
     });
 
     $("#resize-result-panel").click(function () {
