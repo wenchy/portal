@@ -103,39 +103,13 @@ AUTHS = {
     },
     "basics": {
         # username -> {password, roles}
-        "test": {"password": "test", "roles": ["user"]}
+        "test": {"password": "test", "roles": ["staff"]}
     },
     "admins": {
         # username -> {password, roles}
-        "admin": {"password": "adminpw", "roles": ["user"]}
+        "admin": {"password": "adminpw", "roles": ["staff"]}
     },
 }
-
-
-class Perm(object):
-    env: str  # env name
-    module: str  # module name
-    func: str  # func name
-    opcode: list  # opcode range
-    block: bool
-
-    def __init__(
-        self,
-        env: str,
-        module: str,
-        func: str,
-        opcode: list,
-        block: bool = False,
-    ):
-        self.env = env
-        self.module = module
-        self.func = func
-        self.opcode = opcode
-        self.block = block
-
-
-# "public.*.*.update.block"
-ROLES = {"user": Perm("*", "*", "*", "*")}
 
 VENV_NAME = "dev"  # will be replaced to real env by deploy.sh
 

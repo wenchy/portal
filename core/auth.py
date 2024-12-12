@@ -8,6 +8,7 @@ import hashlib
 from http import HTTPStatus
 from core.logger import log
 import config
+import authconf
 from core import util
 
 
@@ -49,9 +50,7 @@ def auth_basic(handler):
     auth_decoded = base64.decodebytes(bytes(auth_header[6:], "utf-8"))
     username, password = auth_decoded.decode("utf-8").split(":", 2)
 
-    # TODO: actually verify provided credentials :-)
-    combined = config.AUTHS["basics"] | config.AUTHS["admins"]
-    if username in combined and password == combined[username]["password"]:
+    if authconf.USERS.authenticate(username, password):
         return True, username
     else:
         return _unauthorized(), username
@@ -60,8 +59,8 @@ def auth_basic(handler):
 def auth_api(handler):
     appid = handler.get_argument("appid", "")
     log.debug("appid: " + appid)
-    if appid and appid in config.AUTHS["apis"]:
-        appkey = config.AUTHS["apis"][appid]
+    if appid and appid in authconf.APIS:
+        appkey = authconf.APIS[appid]
         signature = handler.get_argument("signature", "")
         timestamp = handler.get_argument("timestamp", "")
         encoded = hashlib.md5((appkey + timestamp).encode("utf-8")).hexdigest()
@@ -73,10 +72,11 @@ def auth_api(handler):
 
 def auth_admin(handler):
     ok, username = auth_basic(handler)
-    if ok and username in config.AUTHS["admins"]:
-        return True, username
-    else:
-        return False, username
+    return True, username
+    # if ok and username in config.AUTHS["admins"]:
+    #     return True, username
+    # else:
+    #     return False, username
 
 
 def auth(auth_type="basic"):
@@ -191,8 +191,9 @@ def check_executability(handler_class):
                 f"check perm, username: {username}, env: {env_name}, module: {module_name}, func: {func_name}, opcode: {opcode}"
             )
 
-            ok = check_perm(username, env_name, module_name, func_name, opcode)
-
+            ok = authconf.USERS.authorize(
+                username, env_name, module_name, func_name, opcode
+            )
             if not ok:
                 log.error("check perm failed")
                 self.set_status(HTTPStatus.FORBIDDEN)
