@@ -42,8 +42,8 @@ def process_server_time(ctx: Context, svr_name: str, datetime_str: str, opcode: 
                 "input": "select",
                 "options": {
                     "0": "Query",
-                    "1": "Set",
-                    "2": "Reset"
+                    "100": "Set",
+                    "101": "Reset"
                 }
             }
         },
@@ -111,8 +111,8 @@ def manage_whilelist(ctx: Context, whitelist_type: int, content: str, opcode: in
                 "input": "select",
                 "options": {
                      "0": "Query",
-                     "1": "Update",
-                     "2": "Delete"
+                     "100": "Update",
+                     "200": "Delete"
                 }
             }
         },

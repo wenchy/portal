@@ -152,8 +152,7 @@ def auth(auth_type="basic"):
                     self.write("<br>Auth level: <strong>" + auth_type + "</strong>")
                     self._transforms = []
                     self.finish()
-
-                    return False
+                    return
 
             # return our new function, which either returns False if basic auth
             # wasn't provided, otherwise it returns the result of calling the
@@ -203,7 +202,7 @@ def check_executability(handler_class):
                 )
                 self._transforms = []
                 self.finish()
-                return False
+                return
             return handler_execute(self, transforms, *args, **kwargs)
 
         return _execute

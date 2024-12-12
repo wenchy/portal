@@ -1,5 +1,6 @@
 from .role import *
 import collections
+import re
 
 
 class User(object):
@@ -12,7 +13,11 @@ class User(object):
         return self.password == password
 
     def authorize(self, env: str, module: str, func: str, opcode: int) -> bool:
-        return True
+        for role in self.roles:
+            # pass at least one role is authorized
+            if role.authorize(env, module, func, opcode):
+                return True
+        return False
 
     def __repr__(self):
         return f"User(username={self.username}, password={self.password}, roles={self.roles})"
