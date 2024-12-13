@@ -78,6 +78,49 @@ _AUTHS = collections.OrderedDict(
 )
 
 
+class BaseHandler(tornado.web.RequestHandler):
+
+    def _authenticate(self) -> bool:
+        # for name, value in self.request.headers.get_all():
+        #     log.debug("headers: " + name + ":" + value)
+
+        # prepare common data members
+        self.auth_type = config.DEPLOYED_ENV["auth"]
+        self.username = None  # To be filled by authentication
+
+        # treat VENV as env for checking permissions
+        self.env: str = config.VENV_NAME
+
+        real_auth_type = self.auth_type
+        ok, username = False, None
+        # NOTE: auths是OrderedDict
+        # 描述: 按照level从高到低一个个尝试鉴权，如果成功就break，直到level等于设置的最低鉴权类型对应level
+        # 目的: 保证高level权限的用户可以pass低level的鉴权类型
+        for _auth_type, _auth_item in _AUTHS.items():
+            if _auth_item["level"] >= _AUTHS[self.auth_type]["level"]:
+                ok, username = _auth_item["handler"](self)
+                if ok:
+                    real_auth_type = _auth_type
+                    break
+
+        # remember for later use
+        self.username = username
+        self.auth_type = real_auth_type
+
+        access_detail = f"username: {username}, specified auth: {self.auth_type}, real auth: {real_auth_type}, arguments: {self.request.arguments}"
+        if ok:
+            log.debug(f"authenticate succeeded, " + access_detail)
+            return True
+        else:
+            log.error(f"authenticate failed, " + access_detail)
+            # NOTE: HTTP header is set by each auth type handler
+            self.write("<h3>Permission denied!</h3>")
+            self.write("Please contact the server team for permissions.")
+            self.write("<br>Auth level: <strong>" + self.auth_type + "</strong>")
+            self.finish()
+            return False
+
+
 # Refer: https://github.com/tornadoweb/tornado/issues/3287
 #
 # You should not be overriding `_execute`` here and should do your auth checks
@@ -85,106 +128,25 @@ _AUTHS = collections.OrderedDict(
 # because prepare couldn't be asynchronous, but now that we support coroutines
 # in `prepare`` there's no reason to override `_execute` any more and you
 # should stay away from it.
-class BaseListHandler(tornado.web.RequestHandler):
+class BaseListHandler(BaseHandler):
     def prepare(self):
-        # prepare common data members
-        self.auth_type = config.DEPLOYED_ENV["auth"]
-        self.username = None  # To be filled by authentication
+        self._authenticate()
+
+
+class BaseExecuteHandler(BaseHandler):
+    def prepare(self):
 
         if not self._authenticate():
             return
 
-        # treat VENV as env for checking permissions
-        self.env: str = config.VENV_NAME
-
-    def _authenticate(self) -> bool:
-        for name, value in self.request.headers.get_all():
-            log.debug("headers: " + name + ":" + value)
-
-        real_auth_type = self.auth_type
-        ok, username = False, None
-        # NOTE: auths是OrderedDict
-        # 描述: 按照level从高到低一个个尝试鉴权，如果成功就break，直到level等于设置的最低鉴权类型对应level
-        # 目的: 保证高level权限的用户可以pass低level的鉴权类型
-        for _auth_type, _auth_item in _AUTHS.items():
-            if _auth_item["level"] >= _AUTHS[self.auth_type]["level"]:
-                ok, username = _auth_item["handler"](self)
-                if ok:
-                    real_auth_type = _auth_type
-                    break
-
-        # remember for later use
-        self.username = username
-        self.auth_type = real_auth_type
-
-        access_detail = f"username: {username}, specified auth: {self.auth_type}, real auth: {real_auth_type}, arguments: {self.request.arguments}"
-        if ok:
-            log.debug(f"authenticate succeeded, " + access_detail)
-            return True
-        else:
-            log.error(f"authenticate failed, " + access_detail)
-            # NOTE: HTTP header is set by each auth type handler
-            self.write("<h3>Permission denied!</h3>")
-            self.write("Please contact the server team for permissions.")
-            self.write("<br>Auth level: <strong>" + self.auth_type + "</strong>")
-            self.finish()
-            return False
-
-
-class BaseExecuteHandler(tornado.web.RequestHandler):
-    def prepare(self):
         # prepare common data members
-        self.auth_type = config.DEPLOYED_ENV["auth"]
-        self.username = None  # To be filled by authentication
-
         self.zone: int = int(self.get_argument("_zone"), 0)
         self.env: str = config.ZONES[self.zone]["env"]["name"]
         self.module: str = self.get_argument("_module", "")
         self.func: str = self.get_argument("_func", "")
         self.opcode: int = int(self.get_argument("opcode", 0))
 
-        if not self._authenticate():
-            # NOTE: HTTP header is set by each auth type handler
-            self.write("<h3>Permission denied!</h3>")
-            self.write("Please contact the server team for permissions.")
-            self.write("<br>Auth level: <strong>" + self.auth_type + "</strong>")
-            self.finish()
-        else:
-            if not self._authorize():
-                self.set_status(HTTPStatus.FORBIDDEN)
-                self.write("<h3>Forbidden</h3>")
-                self.write(
-                    f"You are not allowed to access env: {self.env}, module: {self.module}, func: {self.func}, opcode: {self.opcode}"
-                )
-                self.finish()
-
-    def _authenticate(self) -> bool:
-        for name, value in self.request.headers.get_all():
-            log.debug("headers: " + name + ":" + value)
-
-        real_auth_type = self.auth_type
-        ok, username = False, None
-        # NOTE: auths是OrderedDict
-        # 描述: 按照level从高到低一个个尝试鉴权，如果成功就break，直到level等于设置的最低鉴权类型对应level
-        # 目的: 保证高level权限的用户可以pass低level的鉴权类型
-        for _auth_type, _auth_item in _AUTHS.items():
-            if _auth_item["level"] >= _AUTHS[self.auth_type]["level"]:
-                ok, username = _auth_item["handler"](self)
-                if ok:
-                    real_auth_type = _auth_type
-                    break
-
-        # remember for later use
-        self.username = username
-        self.auth_type = real_auth_type
-
-        access_detail = f"username: {username}, specified auth: {self.auth_type}, real auth: {real_auth_type}, arguments: {self.request.arguments}"
-        if ok:
-            log.debug(f"authenticate succeeded, " + access_detail)
-            return True
-        else:
-            log.error(f"authenticate failed, " + access_detail)
-            return False
+        self._authorize()
 
     def _authorize(self) -> bool:
         # NOTE: depending "self.username" filled by authentication
@@ -198,6 +160,12 @@ class BaseExecuteHandler(tornado.web.RequestHandler):
             return True
         else:
             log.error("authorize failed, " + access_detail)
+            self.set_status(HTTPStatus.FORBIDDEN)
+            self.write("<h3>Forbidden</h3>")
+            self.write(
+                f"You are not allowed to access env: {self.env}, module: {self.module}, func: {self.func}, opcode: {self.opcode}"
+            )
+            self.finish()
             return False
 
 
