@@ -42,15 +42,16 @@ sys.path.append("common/protocol")
 class ControllerList(auth.BaseListHandler):
 
     def post(self, *args, **kwargs):
-        pkg_name = "controller.user"  # default
+        pkg_fullname = "controller.user"  # default
         if len(args) == 1 and args[0]:
             # package specified
-            pkg_name = f"controller.{args[0]}"
+            pkg_fullname = f"controller.{args[0]}"
 
         param_type = self.get_argument("type", "")
         param_zone = self.get_argument("zone", "")
         param_uid = self.get_argument("uid", "")
 
+        # process redirect logic
         if param_type and param_zone and param_uid:
             # redirect by zone_id
             zone_id = int(param_zone)
@@ -90,40 +91,16 @@ class ControllerList(auth.BaseListHandler):
                 self.finish()
                 return
 
-        modules = formmgr.ALL_PACKAGES[pkg_name].modules
+        modules = formmgr.ALL_PACKAGES[pkg_fullname].modules
         tabs = collections.OrderedDict()
+        user = authconf.USERS.get(self.username)
         for module in modules:
             # name pattern of python module is: A.B.C, convert it to A-B-C
             # to comply with HTML name pattern
             tab_name = module.__name__.replace(".", "-")
             forms = util.get_forms_by_module(module)
             # generate auth forms
-            auth_forms = {}
-            user = authconf.USERS.get(self.username)
-            for func_name, form in forms.items():
-                opcodes = {}
-                if "submit" in form and "options" in form["args"][form["submit"]]:
-                    for opcode in form["args"][form["submit"]]["options"].keys():
-                        if user.authorize(
-                            self.env,
-                            module.__name__,
-                            func_name,
-                            int(opcode),
-                        ):
-                            opcodes[opcode] = ""
-                        else:
-                            opcodes[opcode] = "disabled"
-                else:
-                    opcode = "0"  # default opcode is 0
-                    if user.authorize(
-                        self.env, module.__name__, func_name, int(opcode)
-                    ):
-                        opcodes[opcode] = ""
-                    else:
-                        opcodes[opcode] = "disabled"
-
-                auth_forms[func_name] = {"opcodes": opcodes}
-
+            auth_forms = auth.gen_auth_forms(user, self.env, module.__name__, forms)
             tabs[tab_name] = {
                 "module_name": module.__name__,
                 "desc": module.__doc__,
@@ -133,6 +110,7 @@ class ControllerList(auth.BaseListHandler):
         # log.debug(tabs)
         self.render(
             "./templates/index.html",
+            package_names=formmgr.PACKAGE_NAMES,
             tabs=tabs,
             venv_name=config.VENV_NAME,
             deployed_venv=config.DEPLOYED_ENV,
@@ -169,8 +147,8 @@ def execute_request(handler: auth.BaseExecuteHandler, *args, **kwargs):
     # Split a module name at the last occurrence of a dot (.) into two parts,
     # the first part is package name:
     # e.g.: "controller.user.example_modifier" -> "controller.user"
-    pkg_name = handler.module.rsplit(".", 1)[0]
-    func = formmgr.ALL_PACKAGES[pkg_name].indexes[handler.module][1][handler.func]
+    pkg_fullname = handler.module.rsplit(".", 1)[0]
+    func = formmgr.ALL_PACKAGES[pkg_fullname].indexes[handler.module][1][handler.func]
 
     extras = {"username": handler.username}
     account_type = int(handler.get_argument("_type", "0"))
@@ -300,7 +278,8 @@ def start_app(mode):
             {"path": "./static/"},
         ),
         # dynamic handlers
-        (rf"/({config.VENV_NAME}/?)?", ControllerList),
+        (rf"/", ControllerList),
+        (rf"/{config.VENV_NAME}/?", ControllerList),
         (rf"/{config.VENV_NAME}/controller/list/(.*)", ControllerList),
         (rf"/{config.VENV_NAME}/controller/exec", ControllerExecute),
     ]

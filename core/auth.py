@@ -10,6 +10,7 @@ import tornado
 import config
 import authconf
 from .logger import log
+from .rbac.user import User
 
 
 def auth_anonym(handler):
@@ -92,7 +93,7 @@ class BaseListHandler(tornado.web.RequestHandler):
 
         if not self._authenticate():
             return
-        
+
         # treat VENV as env for checking permissions
         self.env: str = config.VENV_NAME
 
@@ -198,6 +199,33 @@ class BaseExecuteHandler(tornado.web.RequestHandler):
         else:
             log.error("authorize failed, " + access_detail)
             return False
+
+
+def gen_auth_forms(user: User, env_name: str, module_name: str, forms: dict) -> dict:
+    """generate auth forms for disabling unauthorized opcodes"""
+    auth_forms = {}
+    for func_name, form in forms.items():
+        opcodes = {}
+        if "submit" in form and "options" in form["args"][form["submit"]]:
+            for opcode in form["args"][form["submit"]]["options"].keys():
+                if user.authorize(
+                    env_name,
+                    module_name,
+                    func_name,
+                    int(opcode),
+                ):
+                    opcodes[opcode] = ""
+                else:
+                    opcodes[opcode] = "disabled"
+        else:
+            opcode = "0"  # default opcode is 0
+            if user.authorize(env_name, module_name, func_name, int(opcode)):
+                opcodes[opcode] = ""
+            else:
+                opcodes[opcode] = "disabled"
+        auth_forms[func_name] = {"opcodes": opcodes}
+
+    return auth_forms
 
 
 if __name__ == "__main__":

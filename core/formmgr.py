@@ -19,6 +19,7 @@ class Package(object):
 
 # package_name -> package
 ALL_PACKAGES: dict[str, Package] = {}
+PACKAGE_NAMES: list[str] = []
 
 
 def parse_package_forms(pkg_path: str):
@@ -54,3 +55,10 @@ def parse_controller_forms():
         full_path = os.path.join(base_dir, entry)
         if os.path.isdir(full_path) and entry != "__pycache__":
             parse_package_forms(full_path)
+
+    global ALL_PACKAGES
+    global PACKAGE_NAMES
+    for fullname in ALL_PACKAGES.keys():
+        name = fullname.rsplit(".", 1)[1]
+        PACKAGE_NAMES.append(name)
+    PACKAGE_NAMES.sort()
