@@ -1,46 +1,46 @@
-{% for func_name, func in tab['forms'].items() %}
+{% for func_name, form in tab['forms'].items() %}
 
-{% if func['layout'] == '6-column' %}
+{% if form['layout'] == '6-column' %}
     <div class="col-xs-12 col-sm-12 col-md-12 item">
-{% elif func['layout'] == '4-column' %}
+{% elif form['layout'] == '4-column' %}
     <div class="col-xs-12 col-sm-12 col-md-8 item">
 {% else %}
    <div class="col-xs-6 col-sm-6 col-md-4 item">
 {% end %}
 
-    <div class="panel panel-{{ func['theme'] }}" {% if 'tip' in func %} data-toggle="tooltip" data-placement="top" title="{{ func['tip'] }}" {% end %}>
+    <div class="panel panel-{{ form['theme'] }}" {% if 'tip' in form %} data-toggle="tooltip" data-placement="top" title="{{ form['tip'] }}" {% end %}>
         <div class="panel-heading">
-            <h3 class="panel-title text-center" >{% if 'title' in func %} {{ func['title'] }} {% else %} {{ func_name }} {% end %}</h3>
+            <h3 class="panel-title text-center" >{% if 'title' in form %} {{ form['title'] }} {% else %} {{ func_name }} {% end %}</h3>
         </div>
         <div class="panel-body">
             <form class="form-horizontal"
-                {% if 'target' in func %}
-                    target="{{ func['target'] }}"
+                {% if 'target' in form %}
+                    target="{{ form['target'] }}"
                 {% else %}
                     target="_self"
                 {% end %}
 
-                {% if 'method' in func %}
-                    method="{{ func['method'] }}"
+                {% if 'method' in form %}
+                    method="{{ form['method'] }}"
                 {% else %}
                     method="post"
                 {% end %}
 
-                {% if 'enctype' in func %}
-                    enctype="{{ func['enctype'] }}"
+                {% if 'enctype' in form %}
+                    enctype="{{ form['enctype'] }}"
                 {% end %}
 
                 action="/{{ venv_name }}{{ form_action }}"
 
-                {% if 'popup' in func %}
-                    popup="{{ func['popup'] }}"
+                {% if 'popup' in form %}
+                    popup="{{ form['popup'] }}"
                 {% end %}
             >
                 <input type="hidden" name="_module" value="{{ tab['module_name'] }}" />
                 <input type="hidden" name="_func" value="{{ func_name }}" />
                 <input type="hidden" name="_type" value=""> 
 
-                {% for arg_name, arg in func['args'].items() %}
+                {% for arg_name, arg in form['args'].items() %}
                     {% if arg_name in ["_jsoneditor_content"] %}
                         <input type="hidden" name="{{ arg_name }}" value="" />
                      {% elif arg_name in ["ctx"] %}
@@ -48,17 +48,17 @@
                         <input type="hidden" name="_zone" value="" />
                     {% else %}
 
-                        {% if func['layout'] == '6-column' %}
+                        {% if form['layout'] == '6-column' %}
                             <div class="col-sm-2">
                             {% set form_group_class='form_group_margin' %}
                             {% set label_class='control-label' %}
                             {% set input_class='' %}
-                        {% elif func['layout'] == '4-column' %}
+                        {% elif form['layout'] == '4-column' %}
                             <div class="col-sm-3">
                             {% set form_group_class='form_group_margin' %}
                             {% set label_class='control-label' %}
                             {% set input_class='' %}
-                        {% elif func['layout'] == '2-column' %}
+                        {% elif form['layout'] == '2-column' %}
                             <div class="col-sm-6">
                             {% set form_group_class='form_group_margin' %}
                             {% set label_class='control-label' %}
@@ -78,7 +78,7 @@
                                 </div>
                             </div>
                         {% elif arg['input'] == 'select' %}
-                            <div class="{{ form_group_class }} form-group form-group-sm {% if 'submit' in func and func['submit'] == arg_name %} hidden {% end %}" {% if 'tip' in arg %} data-toggle="tooltip" data-placement="top" title="{{ arg['tip'] }}" {% end %}>
+                            <div class="{{ form_group_class }} form-group form-group-sm {% if 'submit' in form and form['submit'] == arg_name %} hidden {% end %}" {% if 'tip' in arg %} data-toggle="tooltip" data-placement="top" title="{{ arg['tip'] }}" {% end %}>
                                 <label class="{{ label_class }}">{{ arg['desc'] }}</label>
                                 <div class="{{ input_class }}">
                                     <select name="{{ arg_name }}" class="form-control input-sm" {{ arg['status'] }}>
@@ -89,7 +89,7 @@
                                 </div>
                             </div>
                         {% elif arg['input'] == 'selectpicker' %}
-                            <div class="{{ form_group_class }} form-group form-group-sm {% if 'submit' in func and func['submit'] == arg_name %} hidden {% end %}" {% if 'tip' in arg %} data-toggle="tooltip" data-placement="top" title="{{ arg['tip'] }}" {% end %}>
+                            <div class="{{ form_group_class }} form-group form-group-sm {% if 'submit' in form and form['submit'] == arg_name %} hidden {% end %}" {% if 'tip' in arg %} data-toggle="tooltip" data-placement="top" title="{{ arg['tip'] }}" {% end %}>
                                 <label class="{{ label_class }}">{{ arg['desc'] }}</label>
                                 <div class="{{ input_class }}">
                                     <select name="{{ arg_name }}" class="form-control input-sm selectpicker" data-live-search="true" data-size="10" data-width="100%" {{ arg['status'] }} {% if 'multiple' in arg %} multiple {% end %}>
@@ -142,7 +142,7 @@
                             </div>
                         {% end %}
 
-                        {% if func['layout'] != '1-column' %}
+                        {% if form['layout'] != '1-column' %}
                             </div>
                         {% end %}
 
@@ -152,16 +152,19 @@
                 <!-- submit -->
                 <div style="padding: 3px 0"></div>
                
-                {% if 'submit' in func and 'options' in func['args'][func['submit']] %}
+                {% if 'submit' in form and 'options' in form['args'][form['submit']] %}
                 <div class="text-right">
-                    {% for value,desc in func['args'][func['submit']]['options'].items() %}
-                        <button type="button" {% if 'targets' in func['args'][func['submit']] and value in func['args'][func['submit']]['targets'] %} data-form-target="{{ func['args'][func['submit']]['targets'][value] }}" {% end %} arg_name="{{ func['submit'] }}" class="btn btn-default btn-sm submit-btn" arg_value="{{ value }}">{{ desc }}</button>
+                    {% for value,desc in form['args'][form['submit']]['options'].items() %}
+                        <button type="button" 
+                            {% if 'targets' in form['args'][form['submit']] and value in form['args'][form['submit']]['targets'] %} data-form-target="{{ form['args'][form['submit']]['targets'][value] }}" {% end %} 
+                            arg_name="{{ form['submit'] }}" class="btn btn-default btn-sm submit-btn" arg_value="{{ value }}" 
+                            {{ tab['auth_forms'][func_name]['opcodes'][value] }}>{{ desc }}</button>
                     {% end %}
                 </div>
                 {% else %}
                 <div class="form-group">
                     <div class="col-sm-offset-4 col-sm-8">
-                        <button type="submit" class="btn btn-default btn-sm submit-btn">Submit</button>
+                        <button type="submit" class="btn btn-default btn-sm submit-btn" {{ tab['auth_forms'][func_name]['opcodes']['0'] }}>Submit</button>
                     </div>
                 </div>
                 {% end %}

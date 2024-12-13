@@ -6,9 +6,11 @@ import base64
 import collections
 import hashlib
 from http import HTTPStatus
-from core.logger import log
+import tornado
 import config
-from core import util
+import authconf
+from .logger import log
+from .rbac.user import User
 
 
 def auth_anonym(handler):
@@ -25,8 +27,6 @@ def auth_basic(handler):
     def _unauthorized():
         handler.set_status(HTTPStatus.UNAUTHORIZED)
         handler.set_header("WWW-Authenticate", "Basic realm=Restricted")  # noqa
-        # handler._transforms = []
-        # handler.finish()
         return False
 
     auth_header = handler.request.headers.get("Authorization")
@@ -49,9 +49,7 @@ def auth_basic(handler):
     auth_decoded = base64.decodebytes(bytes(auth_header[6:], "utf-8"))
     username, password = auth_decoded.decode("utf-8").split(":", 2)
 
-    # TODO: actually verify provided credentials :-)
-    combined = config.AUTHS["basics"] | config.AUTHS["admins"]
-    if username in combined and password == combined[username]:
+    if authconf.USERS.authenticate(username, password):
         return True, username
     else:
         return _unauthorized(), username
@@ -60,8 +58,8 @@ def auth_basic(handler):
 def auth_api(handler):
     appid = handler.get_argument("appid", "")
     log.debug("appid: " + appid)
-    if appid and appid in config.AUTHS["apis"]:
-        appkey = config.AUTHS["apis"][appid]
+    if appid and appid in authconf.APIS:
+        appkey = authconf.APIS[appid]
         signature = handler.get_argument("signature", "")
         timestamp = handler.get_argument("timestamp", "")
         encoded = hashlib.md5((appkey + timestamp).encode("utf-8")).hexdigest()
@@ -71,108 +69,132 @@ def auth_api(handler):
     return False, appid
 
 
-def auth_admin(handler):
-    ok, username = auth_basic(handler)
-    if ok and username in config.AUTHS["admins"]:
-        return True, username
-    else:
-        return False, username
+_AUTHS = collections.OrderedDict(
+    [
+        ("api", {"handler": auth_api, "level": 3}),
+        ("basic", {"handler": auth_basic, "level": 2}),
+        ("anonym", {"handler": auth_anonym, "level": 1}),
+    ]
+)
 
 
-def auth(auth_type="basic"):
-    """
-    Explanation:
-        tornado.web.RequestHandler calls an internal `_execute` method before
-        calling any other method such as `get` or `post` etc.
-        we wrap the internal `_execute` method so that it either returns False if
-        no basic authentication provided or it will return the result of calling
-        the actual `_execute` method.
-    Tutorial:
-        http://kevinsayscode.tumblr.com/post/7362319243/easy-basic-http-authentication-with-tornado
-    """
-    auths = collections.OrderedDict(
-        [
-            ("admin", {"handler": auth_admin, "level": 6}),
-            ("api", {"handler": auth_api, "level": 3}),
-            ("basic", {"handler": auth_basic, "level": 2}),
-            ("anonym", {"handler": auth_anonym, "level": 1}),
-        ]
-    )
+class BaseHandler(tornado.web.RequestHandler):
 
-    def decorator(handler_class):
-        def wrap_execute(handler_execute):
-            # Since we're going to attach this to a RequestHandler class,
-            # the first argument will wind up being a reference to an
-            # instance of that class.
-            @util.exception_catcher
-            def _execute(self, transforms, *args, **kwargs):
-                for name, value in self.request.headers.get_all():
-                    log.debug("headers: " + name + ":" + value)
+    def _authenticate(self) -> bool:
+        # for name, value in self.request.headers.get_all():
+        #     log.debug("headers: " + name + ":" + value)
 
-                real_auth_type = auth_type
-                ok, username = False, None
-                # NOTE: auths是OrderedDict
-                # 描述: 按照level从高到低一个个尝试鉴权，如果成功就break，直到level等于设置的最低鉴权类型对应level
-                # 目的: 保证高level权限的用户可以pass低level的鉴权类型
-                for _auth_type, _auth_item in auths.items():
-                    if _auth_item["level"] >= auths[auth_type]["level"]:
-                        ok, username = _auth_item["handler"](self)
-                        if ok:
-                            real_auth_type = _auth_type
-                            break
+        # prepare common data members
+        self.auth_type = config.DEPLOYED_ENV["auth"]
+        self.username = None  # To be filled by authentication
 
+        # treat VENV as env for checking permissions
+        self.env: str = config.VENV_NAME
+
+        real_auth_type = self.auth_type
+        ok, username = False, None
+        # NOTE: auths是OrderedDict
+        # 描述: 按照level从高到低一个个尝试鉴权，如果成功就break，直到level等于设置的最低鉴权类型对应level
+        # 目的: 保证高level权限的用户可以pass低level的鉴权类型
+        for _auth_type, _auth_item in _AUTHS.items():
+            if _auth_item["level"] >= _AUTHS[self.auth_type]["level"]:
+                ok, username = _auth_item["handler"](self)
                 if ok:
-                    log.info(
-                        "success|username: %s|specified auth: %s|real auth: %s|class: %s|arguments: %s"
-                        % (
-                            username,
-                            auth_type,
-                            real_auth_type,
-                            handler_class.__name__,
-                            str(self.request.arguments),
-                        )
-                    )
-                    kwargs["username"] = username
-                    kwargs["auth_type"] = real_auth_type
-                    return handler_execute(self, transforms, *args, **kwargs)
+                    real_auth_type = _auth_type
+                    break
+
+        # remember for later use
+        self.username = username
+        self.auth_type = real_auth_type
+
+        access_detail = f"username: {username}, specified auth: {self.auth_type}, real auth: {real_auth_type}, arguments: {self.request.arguments}"
+        if ok:
+            log.debug(f"authenticate succeeded, " + access_detail)
+            return True
+        else:
+            log.error(f"authenticate failed, " + access_detail)
+            # NOTE: HTTP header is set by each auth type handler
+            self.write("<h3>Permission denied!</h3>")
+            self.write("Please contact the server team for permissions.")
+            self.write("<br>Auth level: <strong>" + self.auth_type + "</strong>")
+            self.finish()
+            return False
+
+
+# Refer: https://github.com/tornadoweb/tornado/issues/3287
+#
+# You should not be overriding `_execute`` here and should do your auth checks
+# in `prepare()` instead. We previously kinda-supported overriding `_execute`
+# because prepare couldn't be asynchronous, but now that we support coroutines
+# in `prepare`` there's no reason to override `_execute` any more and you
+# should stay away from it.
+class BaseListHandler(BaseHandler):
+    def prepare(self):
+        self._authenticate()
+
+
+class BaseExecuteHandler(BaseHandler):
+    def prepare(self):
+
+        if not self._authenticate():
+            return
+
+        # prepare common data members
+        self.zone: int = int(self.get_argument("_zone"), 0)
+        self.env: str = config.ZONES[self.zone]["env"]["name"]
+        self.module: str = self.get_argument("_module", "")
+        self.func: str = self.get_argument("_func", "")
+        self.opcode: int = int(self.get_argument("opcode", 0))
+
+        self._authorize()
+
+    def _authorize(self) -> bool:
+        # NOTE: depending "self.username" filled by authentication
+        access_detail = f"username: {self.username}, env: {self.env}, module: {self.module}, func: {self.func}, opcode: {self.opcode}"
+
+        ok = authconf.USERS.authorize(
+            self.username, self.env, self.module, self.func, self.opcode
+        )
+        if ok:
+            log.debug("authorize succeeded, " + access_detail)
+            return True
+        else:
+            log.error("authorize failed, " + access_detail)
+            self.set_status(HTTPStatus.FORBIDDEN)
+            self.write("<h3>Forbidden</h3>")
+            self.write(
+                f"You are not allowed to access env: {self.env}, module: {self.module}, func: {self.func}, opcode: {self.opcode}"
+            )
+            self.finish()
+            return False
+
+
+def gen_auth_forms(user: User, env_name: str, module_name: str, forms: dict) -> dict:
+    """generate auth forms for disabling unauthorized opcodes"""
+    auth_forms = {}
+    for func_name, form in forms.items():
+        opcodes = {}
+        if "submit" in form and "options" in form["args"][form["submit"]]:
+            for opcode in form["args"][form["submit"]]["options"].keys():
+                if user.authorize(
+                    env_name,
+                    module_name,
+                    func_name,
+                    int(opcode),
+                ):
+                    opcodes[opcode] = ""
                 else:
-                    log.info(
-                        "username: %s|auth failed: %s|class: %s|arguments: %s"
-                        % (
-                            username,
-                            auth_type,
-                            handler_class.__name__,
-                            str(self.request.arguments),
-                        )
-                    )
-                    self.write("<h3>Permission denied!</h3>")
-                    self.write(
-                        "Please contact the backend dev-group if you do need permission."
-                    )
-                    self.write("<br>Auth level: <strong>" + auth_type + "</strong>")
-                    self._transforms = []
-                    self.finish()
+                    opcodes[opcode] = "disabled"
+        else:
+            opcode = "0"  # default opcode is 0
+            if user.authorize(env_name, module_name, func_name, int(opcode)):
+                opcodes[opcode] = ""
+            else:
+                opcodes[opcode] = "disabled"
+        auth_forms[func_name] = {"opcodes": opcodes}
 
-                    return False
-
-            # return our new function, which either returns False if basic auth
-            # wasn't provided, otherwise it returns the result of calling the
-            # original _execute function.
-            return _execute
-
-        # wrap tornado's internal `_execute` method, which is called first before
-        # any other method in the RequestHandler class
-        handler_class._execute = wrap_execute(handler_class._execute)
-
-        # return the modified class
-        return handler_class
-
-    return decorator
-
-
-def main():
-    pass
+    return auth_forms
 
 
 if __name__ == "__main__":
-    main()
+    pass

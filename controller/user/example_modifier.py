@@ -42,8 +42,8 @@ def process_server_time(ctx: Context, svr_name: str, datetime_str: str, opcode: 
                 "input": "select",
                 "options": {
                     "0": "Query",
-                    "1": "Set",
-                    "2": "Reset"
+                    "100": "Set",
+                    "101": "Reset"
                 }
             }
         },
@@ -111,8 +111,8 @@ def manage_whilelist(ctx: Context, whitelist_type: int, content: str, opcode: in
                 "input": "select",
                 "options": {
                      "0": "Query",
-                     "1": "Update",
-                     "2": "Delete"
+                     "100": "Update",
+                     "200": "Delete"
                 }
             }
         },
@@ -173,7 +173,7 @@ def upload(ctx: Context, upload__file):
         "args": {
             "upload__file": {
                 "tip": "test.txt",
-                "desc": "File Path",
+                "desc": "File",
                 "input": "file"
             }
         }
@@ -288,18 +288,18 @@ def multi_form_target(ctx: Context, zone: int, opcode: int, upload__file):
                 "input": "select",
                 "options": {
                     "0": "Download",
-                    "1": "Upload",
-                    "2": "Run"
+                    "100": "Upload",
+                    "200": "Run"
                 },
                 "targets": {
                     "0": "_blank",
-                    "1": "_self",
-                    "2": "_blank"
+                    "100": "_self",
+                    "200": "_blank"
                 }
             },
             "upload__file": {
                 "tip": "test.txt",
-                "desc": "File Path",
+                "desc": "File",
                 "input": "file"
             }
         },
