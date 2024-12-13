@@ -23,7 +23,6 @@ import tornado.options
 import tornado.ioloop
 import tornado.httpserver
 import tornado.web
-import os
 import sys
 from http import HTTPStatus
 
@@ -31,6 +30,7 @@ from core.logger import log
 from core import context
 from core import auth
 from core import util
+from core import formmgr
 from core.timespan import Timespan
 import config
 import authconf
@@ -38,106 +38,15 @@ import authconf
 sys.path.append("common")
 sys.path.append("common/protocol")
 
-_ALL_MODULES = {}
-
-_ORDERED_MODIFIER_MODULES = []
-_ORDERED_EDITOR_MODULES = []
-
-_ADMIN_ORDERED_MODIFIER_MODULES = []
-_ADMIN_ORDERED_EDITOR_MODULES = []
-
-
-def LoadAllModifiers():
-    modifier_module_names = [
-        os.path.splitext(file_name)[0]
-        for file_name in os.listdir("controller")
-        if file_name.endswith("_modifier.py")
-    ]
-    global _ALL_MODULES
-    global _ORDERED_MODIFIER_MODULES
-    modifier_modules = []
-    for module_name in modifier_module_names:
-        log.debug("add modifier module: " + module_name)
-        package = __import__("controller", fromlist=[module_name])
-        imported_module = getattr(package, module_name)
-        funcs = util.get_func_by_module(imported_module)
-        _ALL_MODULES[imported_module.__name__] = (imported_module, funcs)
-        modifier_modules.append(imported_module)
-    _ORDERED_MODIFIER_MODULES = sorted(
-        modifier_modules, key=lambda module: module.__priority__, reverse=True
-    )
-    log.debug("ordered_modifier_modules: " + str(_ORDERED_MODIFIER_MODULES))
-
-
-def LoadAllEditors():
-    editor_module_names = [
-        os.path.splitext(file_name)[0]
-        for file_name in os.listdir("controller")
-        if file_name.endswith("_editor.py")
-    ]
-    global _ALL_MODULES
-    global _ORDERED_EDITOR_MODULES
-    editor_modules = []
-    for module_name in editor_module_names:
-        log.debug("add editor module: " + module_name)
-        package = __import__("controller", fromlist=[module_name])
-        imported_module = getattr(package, module_name)
-        funcs = util.get_func_by_module(imported_module)
-        _ALL_MODULES[imported_module.__name__] = (imported_module, funcs)
-        editor_modules.append(imported_module)
-    _ORDERED_EDITOR_MODULES = sorted(
-        editor_modules, key=lambda module: module.__priority__, reverse=True
-    )
-    log.debug("ordered_editor_modules: " + str(_ORDERED_EDITOR_MODULES))
-
-
-def AdminLoadAllModifiers():
-    modifier_module_names = [
-        os.path.splitext(file_name)[0]
-        for file_name in os.listdir("admin")
-        if file_name.endswith("modifier.py")
-    ]
-    global _ALL_MODULES
-    global _ADMIN_ORDERED_MODIFIER_MODULES
-    modifier_modules = []
-    for module_name in modifier_module_names:
-        log.debug("add modifier module: " + module_name)
-        package = __import__("admin", fromlist=[module_name])
-        imported_module = getattr(package, module_name)
-        funcs = util.get_func_by_module(imported_module)
-        _ALL_MODULES[imported_module.__name__] = (imported_module, funcs)
-        modifier_modules.append(imported_module)
-    _ADMIN_ORDERED_MODIFIER_MODULES = sorted(
-        modifier_modules, key=lambda module: module.__priority__, reverse=True
-    )
-    log.debug("admin_ordered_modifier_modules: " + str(_ADMIN_ORDERED_MODIFIER_MODULES))
-
-
-def AdminLoadAllEditors():
-    editor_module_names = [
-        os.path.splitext(file_name)[0]
-        for file_name in os.listdir("admin")
-        if file_name.endswith("_editor.py")
-    ]
-    global _ALL_MODULES
-    global _ADMIN_ORDERED_EDITOR_MODULES
-    editor_modules = []
-    for module_name in editor_module_names:
-        log.debug("add editor module: " + module_name)
-        package = __import__("admin", fromlist=[module_name])
-        imported_module = getattr(package, module_name)
-        funcs = util.get_func_by_module(imported_module)
-        _ALL_MODULES[imported_module.__name__] = (imported_module, funcs)
-        editor_modules.append(imported_module)
-    _ADMIN_ORDERED_EDITOR_MODULES = sorted(
-        editor_modules, key=lambda module: module.__priority__, reverse=True
-    )
-    log.debug("admin_ordered_editor_modules: " + str(_ADMIN_ORDERED_EDITOR_MODULES))
-
 
 class ControllerList(auth.BaseListHandler):
 
     def post(self, *args, **kwargs):
+        pkg_name = "controller.user"  # default
+        if len(args) == 1 and args[0]:
+            # package specified
+            pkg_name = f"controller.{args[0]}"
+
         param_type = self.get_argument("type", "")
         param_zone = self.get_argument("zone", "")
         param_uid = self.get_argument("uid", "")
@@ -181,8 +90,7 @@ class ControllerList(auth.BaseListHandler):
                 self.finish()
                 return
 
-        modules = _ORDERED_MODIFIER_MODULES + _ORDERED_EDITOR_MODULES
-        modules.sort(key=lambda module: module.__priority__, reverse=True)
+        modules = formmgr.ALL_PACKAGES[pkg_name].modules
         tabs = collections.OrderedDict()
         for module in modules:
             # name pattern of python module is: A.B.C, convert it to A-B-C
@@ -233,7 +141,7 @@ class ControllerList(auth.BaseListHandler):
             username=self.username,
             auth_type=self.auth_type,
             avatar_url=config.get_avatar_url(self.username),
-            form_action="/modifier/exec",
+            form_action="/controller/exec",
         )
 
     get = post
@@ -246,73 +154,23 @@ class ControllerExecute(auth.BaseExecuteHandler):
                 f"handle request time-consuming: {duration}, args: {args}, kwargs: {kwargs}, request.arguments: {self.request.arguments}"
             )
         ):
-            handle_execute_request(self, *args, **kwargs)
+            try:
+                execute_request(self, *args, **kwargs)
+            except Exception as e:
+                log.error("Caught exception: %s, %s", str(e), traceback.format_exc())
+                self.write(traceback.format_exc())
 
     get = post
-
-
-class AdminList(auth.BaseListHandler):
-
-    def post(self, *args, **kwargs):
-        modules = _ADMIN_ORDERED_MODIFIER_MODULES + _ADMIN_ORDERED_EDITOR_MODULES
-        modules.sort(key=lambda module: module.__priority__, reverse=True)
-        tabs = collections.OrderedDict()
-        for module in modules:
-            # name pattern of python module is: A.B.C, convert it to A-B-C
-            # to comply with HTML name pattern
-            tab_name = module.__name__.replace(".", "-")
-            tabs[tab_name] = {
-                "module_name": module.__name__,
-                "desc": module.__doc__,
-                "forms": util.get_forms_by_module(module),
-            }
-
-        # log.debug(tabs)
-        self.render(
-            "./templates/index.html",
-            tabs=tabs,
-            venv_name=config.VENV_NAME,
-            deployed_venv=config.DEPLOYED_ENV,
-            venvs=config.VENVS,
-            zones=config.DEPLOYED_ZONES,
-            username=self.username,
-            auth_type=self.auth_type,
-            avatar_url=config.get_avatar_url(self.username),
-            form_action="/admin/exec",
-        )
-
-    get = post
-
-
-class AdminExecute(auth.BaseExecuteHandler):
-
-    def post(self, *args, **kwargs):
-        with Timespan(
-            lambda duration: log.debug(
-                f"handle request time-consuming: {duration}, args: {args}, kwargs: {kwargs}, request.arguments: {self.request.arguments}"
-            )
-        ):
-            handle_execute_request(self, *args, **kwargs)
-
-    get = post
-
-
-def handle_execute_request(handler: auth.BaseExecuteHandler, *args, **kwargs):
-    try:
-        execute_request(handler, *args, **kwargs)
-    except Exception as e:
-        log.error("Caught exception: %s, %s", str(e), traceback.format_exc())
-        handler.write(traceback.format_exc())
 
 
 def execute_request(handler: auth.BaseExecuteHandler, *args, **kwargs):
-    func = None  # python function object
-    for key_module_name, val_module_tuple in _ALL_MODULES.items():
-        if handler.module == "" or handler.module == key_module_name:
-            if handler.func in val_module_tuple[1]:
-                func = val_module_tuple[1][handler.func]
-                break
-    assert func, "func '%s' not existed in module '%s'" % (handler.func, handler.module)
+    # Find the corresponding Python function object.
+    #
+    # Split a module name at the last occurrence of a dot (.) into two parts,
+    # the first part is package name:
+    # e.g.: "controller.user.example_modifier" -> "controller.user"
+    pkg_name = handler.module.rsplit(".", 1)[0]
+    func = formmgr.ALL_PACKAGES[pkg_name].indexes[handler.module][1][handler.func]
 
     extras = {"username": handler.username}
     account_type = int(handler.get_argument("_type", "0"))
@@ -428,11 +286,8 @@ def execute_request(handler: auth.BaseExecuteHandler, *args, **kwargs):
 def start_app(mode):
     tornado.options.parse_command_line()
 
-    # load all modifiers and editors
-    LoadAllModifiers()
-    LoadAllEditors()
-    AdminLoadAllModifiers()
-    AdminLoadAllEditors()
+    # parse all controller forms
+    formmgr.parse_controller_forms()
 
     # NOTE: configure prefix path redirection for VENV_NAME, so we can
     # start standalone web app without nginx reverse proxy.
@@ -446,10 +301,8 @@ def start_app(mode):
         ),
         # dynamic handlers
         (rf"/({config.VENV_NAME}/?)?", ControllerList),
-        (rf"/{config.VENV_NAME}/modifier/list", ControllerList),
-        (rf"/{config.VENV_NAME}/modifier/exec", ControllerExecute),
-        (rf"/{config.VENV_NAME}/admin/list", AdminList),
-        (rf"/{config.VENV_NAME}/admin/exec", AdminExecute),
+        (rf"/{config.VENV_NAME}/controller/list/(.*)", ControllerList),
+        (rf"/{config.VENV_NAME}/controller/exec", ControllerExecute),
     ]
     # application kwargs: settings
     settings = {
@@ -476,17 +329,6 @@ def start_app(mode):
         log.error("unknown start mode: " + mode)
         Usage()
         exit(1)
-
-    # def periodic_task():
-    #     log.info(
-    #         "periodic_task at "
-    #         + "tornado.process.task_id: "
-    #         + str(tornado.process.task_id())
-    #     )
-
-    # log.info("tornado.process.task_id: " + str(tornado.process.task_id()))
-    # if not tornado.process.task_id():
-    #     tornado.ioloop.PeriodicCallback(periodic_task, 10 * 1000).start()
 
     for hanlder in handlers:
         print(f"""Route "{hanlder[0]}" -> {hanlder[1].__name__}""")
