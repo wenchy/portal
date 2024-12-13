@@ -6,10 +6,11 @@ import base64
 import collections
 import hashlib
 from http import HTTPStatus
-from core.logger import log
+import tornado
 import config
 import authconf
 from core import util
+from core.logger import log
 
 
 def auth_anonym(handler):
@@ -26,8 +27,6 @@ def auth_basic(handler):
     def _unauthorized():
         handler.set_status(HTTPStatus.UNAUTHORIZED)
         handler.set_header("WWW-Authenticate", "Basic realm=Restricted")  # noqa
-        # handler._transforms = []
-        # handler.finish()
         return False
 
     auth_header = handler.request.headers.get("Authorization")
@@ -79,137 +78,138 @@ def auth_admin(handler):
     #     return False, username
 
 
-def auth(auth_type="basic"):
-    """
-    Explanation:
-        tornado.web.RequestHandler calls an internal `_execute` method before
-        calling any other method such as `get` or `post` etc.
-        we wrap the internal `_execute` method so that it either returns False if
-        no basic authentication provided or it will return the result of calling
-        the actual `_execute` method.
-    Tutorial:
-        http://kevinsayscode.tumblr.com/post/7362319243/easy-basic-http-authentication-with-tornado
-    """
-    auths = collections.OrderedDict(
-        [
-            ("admin", {"handler": auth_admin, "level": 6}),
-            ("api", {"handler": auth_api, "level": 3}),
-            ("basic", {"handler": auth_basic, "level": 2}),
-            ("anonym", {"handler": auth_anonym, "level": 1}),
-        ]
-    )
+_AUTHS = collections.OrderedDict(
+    [
+        ("admin", {"handler": auth_admin, "level": 6}),
+        ("api", {"handler": auth_api, "level": 3}),
+        ("basic", {"handler": auth_basic, "level": 2}),
+        ("anonym", {"handler": auth_anonym, "level": 1}),
+    ]
+)
 
-    def decorator(handler_class):
-        def wrap_execute(handler_execute):
-            # Since we're going to attach this to a RequestHandler class,
-            # the first argument will wind up being a reference to an
-            # instance of that class.
-            @util.exception_catcher
-            def _execute(self, transforms, *args, **kwargs):
-                for name, value in self.request.headers.get_all():
-                    log.debug("headers: " + name + ":" + value)
 
-                real_auth_type = auth_type
-                ok, username = False, None
-                # NOTE: auths是OrderedDict
-                # 描述: 按照level从高到低一个个尝试鉴权，如果成功就break，直到level等于设置的最低鉴权类型对应level
-                # 目的: 保证高level权限的用户可以pass低level的鉴权类型
-                for _auth_type, _auth_item in auths.items():
-                    if _auth_item["level"] >= auths[auth_type]["level"]:
-                        ok, username = _auth_item["handler"](self)
-                        if ok:
-                            real_auth_type = _auth_type
-                            break
+# Refer: https://github.com/tornadoweb/tornado/issues/3287
+#
+# You should not be overriding `_execute`` here and should do your auth checks
+# in `prepare()` instead. We previously kinda-supported overriding `_execute`
+# because prepare couldn't be asynchronous, but now that we support coroutines
+# in `prepare`` there's no reason to override `_execute` any more and you
+# should stay away from it.
+class BaseListHandler(tornado.web.RequestHandler):
+    def prepare(self):
+        # prepare common data members
+        # TODO: just use config.DEPLOYED_ENV["auth"]
+        self.auth_type = config.DEPLOYED_ENV["auth"]["controller"]
+        self.username = None  # To be filled by authentication
 
+        if not self._authenticate():
+            # NOTE: HTTP header is set by each auth type handler
+            self.write("<h3>Permission denied!</h3>")
+            self.write(
+                "Please contact the backend dev-group if you do need permission."
+            )
+            self.write("<br>Auth level: <strong>" + self.auth_type + "</strong>")
+            self.finish()
+
+    def _authenticate(self) -> bool:
+        for name, value in self.request.headers.get_all():
+            log.debug("headers: " + name + ":" + value)
+
+        real_auth_type = self.auth_type
+        ok, username = False, None
+        # NOTE: auths是OrderedDict
+        # 描述: 按照level从高到低一个个尝试鉴权，如果成功就break，直到level等于设置的最低鉴权类型对应level
+        # 目的: 保证高level权限的用户可以pass低level的鉴权类型
+        for _auth_type, _auth_item in _AUTHS.items():
+            if _auth_item["level"] >= _AUTHS[self.auth_type]["level"]:
+                ok, username = _auth_item["handler"](self)
                 if ok:
-                    log.info(
-                        "success|username: %s|specified auth: %s|real auth: %s|class: %s|arguments: %s"
-                        % (
-                            username,
-                            auth_type,
-                            real_auth_type,
-                            handler_class.__name__,
-                            str(self.request.arguments),
-                        )
-                    )
-                    kwargs["username"] = username
-                    kwargs["auth_type"] = real_auth_type
-                    return handler_execute(self, transforms, *args, **kwargs)
-                else:
-                    log.info(
-                        "username: %s|auth failed: %s|class: %s|arguments: %s"
-                        % (
-                            username,
-                            auth_type,
-                            handler_class.__name__,
-                            str(self.request.arguments),
-                        )
-                    )
-                    self.write("<h3>Permission denied!</h3>")
-                    self.write(
-                        "Please contact the backend dev-group if you do need permission."
-                    )
-                    self.write("<br>Auth level: <strong>" + auth_type + "</strong>")
-                    self._transforms = []
-                    self.finish()
-                    return
+                    real_auth_type = _auth_type
+                    break
 
-            # return our new function, which either returns False if basic auth
-            # wasn't provided, otherwise it returns the result of calling the
-            # original _execute function.
-            return _execute
+        # remember for later use
+        self.username = username
 
-        # wrap tornado's internal `_execute` method, which is called first before
-        # any other method in the RequestHandler class
-        handler_class._execute = wrap_execute(handler_class._execute)
-
-        # return the modified class
-        return handler_class
-
-    return decorator
+        access_detail = f"username: {username}, specified auth: {self.auth_type}, real auth: {real_auth_type}, arguments: {self.request.arguments}"
+        if ok:
+            log.debug(f"authenticate succeeded, " + access_detail)
+            return True
+        else:
+            log.error(f"authenticate failed, " + access_detail)
+            return False
 
 
-# authorization
-def check_perm(
-    username: str, env_name: str, module_name: str, func_name: str, opcode: int
-) -> bool:
-    return False
+class BaseExecuteHandler(tornado.web.RequestHandler):
+    def prepare(self):
+        # prepare common data members
+        # TODO: just use config.DEPLOYED_ENV["auth"]
+        self.auth_type = config.DEPLOYED_ENV["auth"]["controller"]
+        self.username = None  # To be filled by authentication
 
+        self.zone: int = int(self.get_argument("_zone"), 0)
+        self.env: str = config.ZONES[self.zone]["env"]["name"]
+        self.module: str = self.get_argument("_module", "")
+        self.func: str = self.get_argument("_func", "")
+        self.opcode: int = int(self.get_argument("opcode", 0))
 
-def check_executability(handler_class):
-    def wrap_execute(handler_execute):
-        @util.exception_catcher
-        def _execute(self, transforms, *args, **kwargs):
-            username = kwargs["username"]
-            module_name = self.get_argument("_module", "")
-            func_name = self.get_argument("_func", "")
-            zone_id = int(self.get_argument("_zone"), 0)
-            env_name = config.ZONES[zone_id]["env"]["name"]
-            opcode = int(self.get_argument("opcode", 0))
-            log.debug(
-                f"check perm, username: {username}, env: {env_name}, module: {module_name}, func: {func_name}, opcode: {opcode}"
+        if not self._authenticate():
+            # NOTE: HTTP header is set by each auth type handler
+            self.write("<h3>Permission denied!</h3>")
+            self.write(
+                "Please contact the backend dev-group if you do need permission."
             )
-
-            ok = authconf.USERS.authorize(
-                username, env_name, module_name, func_name, opcode
-            )
-            if not ok:
-                log.error("check perm failed")
+            self.write("<br>Auth level: <strong>" + self.auth_type + "</strong>")
+            self.finish()
+        else:
+            if not self._authorize():
                 self.set_status(HTTPStatus.FORBIDDEN)
                 self.write("<h3>Forbidden</h3>")
                 self.write(
-                    f"You are not allowed to access env: {env_name}, module: {module_name}, func: {func_name}, opcode: {opcode}"
+                    f"You are not allowed to access env: {self.env}, module: {self.module}, func: {self.func}, opcode: {self.opcode}"
                 )
-                self._transforms = []
                 self.finish()
-                return
-            return handler_execute(self, transforms, *args, **kwargs)
 
-        return _execute
+    def _authenticate(self) -> bool:
+        for name, value in self.request.headers.get_all():
+            log.debug("headers: " + name + ":" + value)
 
-    handler_class._execute = wrap_execute(handler_class._execute)
+        real_auth_type = self.auth_type
+        ok, username = False, None
+        # NOTE: auths是OrderedDict
+        # 描述: 按照level从高到低一个个尝试鉴权，如果成功就break，直到level等于设置的最低鉴权类型对应level
+        # 目的: 保证高level权限的用户可以pass低level的鉴权类型
+        for _auth_type, _auth_item in _AUTHS.items():
+            if _auth_item["level"] >= _AUTHS[self.auth_type]["level"]:
+                ok, username = _auth_item["handler"](self)
+                if ok:
+                    real_auth_type = _auth_type
+                    break
 
-    return handler_class
+        # remember for later use
+        self.username = username
+        self.auth_type = real_auth_type
+
+        access_detail = f"username: {username}, specified auth: {self.auth_type}, real auth: {real_auth_type}, arguments: {self.request.arguments}"
+        if ok:
+            log.debug(f"authenticate succeeded, " + access_detail)
+            return True
+        else:
+            log.error(f"authenticate failed, " + access_detail)
+            return False
+
+    def _authorize(self) -> bool:
+        # NOTE: depending "self.username" filled by authentication
+        access_detail = f"username: {self.username}, env: {self.env}, module: {self.module}, func: {self.func}, opcode: {self.opcode}"
+
+        ok = authconf.USERS.authorize(
+            self.username, self.env, self.module, self.func, self.opcode
+        )
+        if ok:
+            log.debug("authorize succeeded, " + access_detail)
+            return True
+        else:
+            log.error("authorize failed, " + access_detail)
+            return False
 
 
 def main():

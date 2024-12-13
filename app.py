@@ -37,13 +37,13 @@ import config
 sys.path.append("common")
 sys.path.append("common/protocol")
 
-all_modules = {}
+_ALL_MODULES = {}
 
-ordered_modifier_modules = []
-ordered_editor_modules = []
+_ORDERED_MODIFIER_MODULES = []
+_ORDERED_EDITOR_MODULES = []
 
-admin_ordered_modifier_modules = []
-admin_ordered_editor_modules = []
+_ADMIN_ORDERED_MODIFIER_MODULES = []
+_ADMIN_ORDERED_EDITOR_MODULES = []
 
 
 def LoadAllModifiers():
@@ -52,20 +52,20 @@ def LoadAllModifiers():
         for file_name in os.listdir("controller")
         if file_name.endswith("_modifier.py")
     ]
-    global all_modules
-    global ordered_modifier_modules
+    global _ALL_MODULES
+    global _ORDERED_MODIFIER_MODULES
     modifier_modules = []
     for module_name in modifier_module_names:
         log.debug("add modifier module: " + module_name)
         package = __import__("controller", fromlist=[module_name])
         imported_module = getattr(package, module_name)
         funcs = util.get_func_by_module(imported_module)
-        all_modules[imported_module.__name__] = (imported_module, funcs)
+        _ALL_MODULES[imported_module.__name__] = (imported_module, funcs)
         modifier_modules.append(imported_module)
-    ordered_modifier_modules = sorted(
+    _ORDERED_MODIFIER_MODULES = sorted(
         modifier_modules, key=lambda module: module.__priority__, reverse=True
     )
-    log.debug("ordered_modifier_modules: " + str(ordered_modifier_modules))
+    log.debug("ordered_modifier_modules: " + str(_ORDERED_MODIFIER_MODULES))
 
 
 def LoadAllEditors():
@@ -74,20 +74,20 @@ def LoadAllEditors():
         for file_name in os.listdir("controller")
         if file_name.endswith("_editor.py")
     ]
-    global all_modules
-    global ordered_editor_modules
+    global _ALL_MODULES
+    global _ORDERED_EDITOR_MODULES
     editor_modules = []
     for module_name in editor_module_names:
         log.debug("add editor module: " + module_name)
         package = __import__("controller", fromlist=[module_name])
         imported_module = getattr(package, module_name)
         funcs = util.get_func_by_module(imported_module)
-        all_modules[imported_module.__name__] = (imported_module, funcs)
+        _ALL_MODULES[imported_module.__name__] = (imported_module, funcs)
         editor_modules.append(imported_module)
-    ordered_editor_modules = sorted(
+    _ORDERED_EDITOR_MODULES = sorted(
         editor_modules, key=lambda module: module.__priority__, reverse=True
     )
-    log.debug("ordered_editor_modules: " + str(ordered_editor_modules))
+    log.debug("ordered_editor_modules: " + str(_ORDERED_EDITOR_MODULES))
 
 
 def AdminLoadAllModifiers():
@@ -96,20 +96,20 @@ def AdminLoadAllModifiers():
         for file_name in os.listdir("admin")
         if file_name.endswith("modifier.py")
     ]
-    global all_modules
-    global admin_ordered_modifier_modules
+    global _ALL_MODULES
+    global _ADMIN_ORDERED_MODIFIER_MODULES
     modifier_modules = []
     for module_name in modifier_module_names:
         log.debug("add modifier module: " + module_name)
         package = __import__("admin", fromlist=[module_name])
         imported_module = getattr(package, module_name)
         funcs = util.get_func_by_module(imported_module)
-        all_modules[imported_module.__name__] = (imported_module, funcs)
+        _ALL_MODULES[imported_module.__name__] = (imported_module, funcs)
         modifier_modules.append(imported_module)
-    admin_ordered_modifier_modules = sorted(
+    _ADMIN_ORDERED_MODIFIER_MODULES = sorted(
         modifier_modules, key=lambda module: module.__priority__, reverse=True
     )
-    log.debug("admin_ordered_modifier_modules: " + str(admin_ordered_modifier_modules))
+    log.debug("admin_ordered_modifier_modules: " + str(_ADMIN_ORDERED_MODIFIER_MODULES))
 
 
 def AdminLoadAllEditors():
@@ -118,24 +118,23 @@ def AdminLoadAllEditors():
         for file_name in os.listdir("admin")
         if file_name.endswith("_editor.py")
     ]
-    global all_modules
-    global admin_ordered_editor_modules
+    global _ALL_MODULES
+    global _ADMIN_ORDERED_EDITOR_MODULES
     editor_modules = []
     for module_name in editor_module_names:
         log.debug("add editor module: " + module_name)
         package = __import__("admin", fromlist=[module_name])
         imported_module = getattr(package, module_name)
         funcs = util.get_func_by_module(imported_module)
-        all_modules[imported_module.__name__] = (imported_module, funcs)
+        _ALL_MODULES[imported_module.__name__] = (imported_module, funcs)
         editor_modules.append(imported_module)
-    admin_ordered_editor_modules = sorted(
+    _ADMIN_ORDERED_EDITOR_MODULES = sorted(
         editor_modules, key=lambda module: module.__priority__, reverse=True
     )
-    log.debug("admin_ordered_editor_modules: " + str(admin_ordered_editor_modules))
+    log.debug("admin_ordered_editor_modules: " + str(_ADMIN_ORDERED_EDITOR_MODULES))
 
 
-@auth.auth(config.DEPLOYED_ENV["auth"]["controller"])
-class ControllerList(tornado.web.RequestHandler):
+class ControllerList(auth.BaseListHandler):
 
     def post(self, *args, **kwargs):
         param_type = self.get_argument("type", "")
@@ -181,10 +180,7 @@ class ControllerList(tornado.web.RequestHandler):
                 self.finish()
                 return
 
-        username = kwargs["username"]
-        auth_type = kwargs["auth_type"]
-
-        modules = ordered_modifier_modules + ordered_editor_modules
+        modules = _ORDERED_MODIFIER_MODULES + _ORDERED_EDITOR_MODULES
         modules.sort(key=lambda module: module.__priority__, reverse=True)
         tabs = collections.OrderedDict()
         for module in modules:
@@ -204,16 +200,74 @@ class ControllerList(tornado.web.RequestHandler):
             deployed_venv=config.DEPLOYED_ENV,
             venvs=config.VENVS,
             zones=config.DEPLOYED_ZONES,
-            username=username,
-            auth_type=auth_type,
-            avatar_url=config.get_avatar_url(username),
+            username=self.username,
+            auth_type=self.auth_type,
+            avatar_url=config.get_avatar_url(self.username),
             form_action="/modifier/exec",
         )
 
     get = post
 
 
-def handle_execute_request(handler: tornado.web.RequestHandler, *args, **kwargs):
+class ControllerExecute(auth.BaseExecuteHandler):
+    def post(self, *args, **kwargs):
+        with Timespan(
+            lambda duration: log.debug(
+                f"handle request time-consuming: {duration}, args: {args}, kwargs: {kwargs}, request.arguments: {self.request.arguments}"
+            )
+        ):
+            handle_execute_request(self, *args, **kwargs)
+
+    get = post
+
+
+class AdminList(auth.BaseListHandler):
+
+    def post(self, *args, **kwargs):
+        modules = _ADMIN_ORDERED_MODIFIER_MODULES + _ADMIN_ORDERED_EDITOR_MODULES
+        modules.sort(key=lambda module: module.__priority__, reverse=True)
+        tabs = collections.OrderedDict()
+        for module in modules:
+            # name pattern of python module is: A.B.C, convert it to A-B-C
+            # to comply with HTML name pattern
+            tab_name = module.__name__.replace(".", "-")
+            tabs[tab_name] = {
+                "module_name": module.__name__,
+                "desc": module.__doc__,
+                "forms": util.get_forms_by_module(module),
+            }
+
+        # log.debug(tabs)
+        self.render(
+            "./templates/index.html",
+            tabs=tabs,
+            venv_name=config.VENV_NAME,
+            deployed_venv=config.DEPLOYED_ENV,
+            venvs=config.VENVS,
+            zones=config.DEPLOYED_ZONES,
+            username=self.username,
+            auth_type=self.auth_type,
+            avatar_url=config.get_avatar_url(self.username),
+            form_action="/admin/exec",
+        )
+
+    get = post
+
+
+class AdminExecute(auth.BaseExecuteHandler):
+
+    def post(self, *args, **kwargs):
+        with Timespan(
+            lambda duration: log.debug(
+                f"handle request time-consuming: {duration}, args: {args}, kwargs: {kwargs}, request.arguments: {self.request.arguments}"
+            )
+        ):
+            handle_execute_request(self, *args, **kwargs)
+
+    get = post
+
+
+def handle_execute_request(handler: auth.BaseExecuteHandler, *args, **kwargs):
     try:
         execute_request(handler, *args, **kwargs)
     except Exception as e:
@@ -221,23 +275,16 @@ def handle_execute_request(handler: tornado.web.RequestHandler, *args, **kwargs)
         handler.write(traceback.format_exc())
 
 
-def execute_request(handler: tornado.web.RequestHandler, *args, **kwargs):
-    module_name = handler.get_argument("_module", "")
-    assert module_name, "argument _module not provided"
-
-    func_name = handler.get_argument("_func", "")
-    assert func_name, "argument _func not provided"
-
-    func = None
-    for key_module_name, val_module_tuple in all_modules.items():
-        if module_name == "" or module_name == key_module_name:
-            if func_name in val_module_tuple[1]:
-                func = val_module_tuple[1][func_name]
+def execute_request(handler: auth.BaseExecuteHandler, *args, **kwargs):
+    func = None  # python function object
+    for key_module_name, val_module_tuple in _ALL_MODULES.items():
+        if handler.module == "" or handler.module == key_module_name:
+            if handler.func in val_module_tuple[1]:
+                func = val_module_tuple[1][handler.func]
                 break
-    assert func, "func '%s' not existed in module '%s'" % (func_name, module_name)
+    assert func, "func '%s' not existed in module '%s'" % (handler.func, handler.module)
 
-    username = kwargs["username"]
-    extras = {"username": username}
+    extras = {"username": handler.username}
     account_type = int(handler.get_argument("_type", "0"))
     uid = int(handler.get_argument("_uid", 0))
     zone_id = int(handler.get_argument("_zone"))
@@ -355,72 +402,6 @@ def execute_request(handler: tornado.web.RequestHandler, *args, **kwargs):
     handler.flush()  # Flushes the current output buffer to the network.
 
 
-@auth.auth(config.DEPLOYED_ENV["auth"]["controller"])
-@auth.check_executability
-class Execute(tornado.web.RequestHandler):
-
-    def post(self, *args, **kwargs):
-        with Timespan(
-            lambda duration: log.debug(
-                f"handle request time-consuming: {duration}, args: {args}, kwargs: {kwargs}, request.arguments: {self.request.arguments}"
-            )
-        ):
-            handle_execute_request(self, *args, **kwargs)
-
-    get = post
-
-
-@auth.auth(config.DEPLOYED_ENV["auth"]["admin"])
-class AdminList(tornado.web.RequestHandler):
-
-    def post(self, *args, **kwargs):
-        username = kwargs["username"]
-        auth_type = kwargs["auth_type"]
-
-        modules = admin_ordered_modifier_modules + admin_ordered_editor_modules
-        modules.sort(key=lambda module: module.__priority__, reverse=True)
-        tabs = collections.OrderedDict()
-        for module in modules:
-            # name pattern of python module is: A.B.C, convert it to A-B-C
-            # to comply with HTML name pattern
-            tab_name = module.__name__.replace(".", "-")
-            tabs[tab_name] = {
-                "module_name": module.__name__,
-                "desc": module.__doc__,
-                "forms": util.get_forms_by_module(module),
-            }
-
-        # log.debug(tabs)
-        self.render(
-            "./templates/index.html",
-            tabs=tabs,
-            venv_name=config.VENV_NAME,
-            deployed_venv=config.DEPLOYED_ENV,
-            venvs=config.VENVS,
-            zones=config.DEPLOYED_ZONES,
-            username=username,
-            auth_type=auth_type,
-            avatar_url=config.get_avatar_url(username),
-            form_action="/admin/exec",
-        )
-
-    get = post
-
-
-@auth.auth(config.DEPLOYED_ENV["auth"]["admin"])
-class AdminExecute(tornado.web.RequestHandler):
-
-    def post(self, *args, **kwargs):
-        with Timespan(
-            lambda duration: log.debug(
-                f"handle request time-consuming: {duration}, args: {args}, kwargs: {kwargs}, request.arguments: {self.request.arguments}"
-            )
-        ):
-            handle_execute_request(self, *args, **kwargs)
-
-    get = post
-
-
 def start_app(mode):
     tornado.options.parse_command_line()
 
@@ -443,7 +424,7 @@ def start_app(mode):
         # dynamic handlers
         (rf"/({config.VENV_NAME}/?)?", ControllerList),
         (rf"/{config.VENV_NAME}/modifier/list", ControllerList),
-        (rf"/{config.VENV_NAME}/modifier/exec", Execute),
+        (rf"/{config.VENV_NAME}/modifier/exec", ControllerExecute),
         (rf"/{config.VENV_NAME}/admin/list", AdminList),
         (rf"/{config.VENV_NAME}/admin/exec", AdminExecute),
     ]
