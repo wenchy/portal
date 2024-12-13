@@ -9,8 +9,7 @@ from http import HTTPStatus
 import tornado
 import config
 import authconf
-from core import util
-from core.logger import log
+from .logger import log
 
 
 def auth_anonym(handler):
@@ -69,18 +68,8 @@ def auth_api(handler):
     return False, appid
 
 
-def auth_admin(handler):
-    ok, username = auth_basic(handler)
-    return True, username
-    # if ok and username in config.AUTHS["admins"]:
-    #     return True, username
-    # else:
-    #     return False, username
-
-
 _AUTHS = collections.OrderedDict(
     [
-        ("admin", {"handler": auth_admin, "level": 6}),
         ("api", {"handler": auth_api, "level": 3}),
         ("basic", {"handler": auth_basic, "level": 2}),
         ("anonym", {"handler": auth_anonym, "level": 1}),
@@ -98,18 +87,14 @@ _AUTHS = collections.OrderedDict(
 class BaseListHandler(tornado.web.RequestHandler):
     def prepare(self):
         # prepare common data members
-        # TODO: just use config.DEPLOYED_ENV["auth"]
-        self.auth_type = config.DEPLOYED_ENV["auth"]["controller"]
+        self.auth_type = config.DEPLOYED_ENV["auth"]
         self.username = None  # To be filled by authentication
 
         if not self._authenticate():
-            # NOTE: HTTP header is set by each auth type handler
-            self.write("<h3>Permission denied!</h3>")
-            self.write(
-                "Please contact the backend dev-group if you do need permission."
-            )
-            self.write("<br>Auth level: <strong>" + self.auth_type + "</strong>")
-            self.finish()
+            return
+        
+        # treat VENV as env for checking permissions
+        self.env: str = config.VENV_NAME
 
     def _authenticate(self) -> bool:
         for name, value in self.request.headers.get_all():
@@ -129,6 +114,7 @@ class BaseListHandler(tornado.web.RequestHandler):
 
         # remember for later use
         self.username = username
+        self.auth_type = real_auth_type
 
         access_detail = f"username: {username}, specified auth: {self.auth_type}, real auth: {real_auth_type}, arguments: {self.request.arguments}"
         if ok:
@@ -136,14 +122,18 @@ class BaseListHandler(tornado.web.RequestHandler):
             return True
         else:
             log.error(f"authenticate failed, " + access_detail)
+            # NOTE: HTTP header is set by each auth type handler
+            self.write("<h3>Permission denied!</h3>")
+            self.write("Please contact the server team for permissions.")
+            self.write("<br>Auth level: <strong>" + self.auth_type + "</strong>")
+            self.finish()
             return False
 
 
 class BaseExecuteHandler(tornado.web.RequestHandler):
     def prepare(self):
         # prepare common data members
-        # TODO: just use config.DEPLOYED_ENV["auth"]
-        self.auth_type = config.DEPLOYED_ENV["auth"]["controller"]
+        self.auth_type = config.DEPLOYED_ENV["auth"]
         self.username = None  # To be filled by authentication
 
         self.zone: int = int(self.get_argument("_zone"), 0)
@@ -155,9 +145,7 @@ class BaseExecuteHandler(tornado.web.RequestHandler):
         if not self._authenticate():
             # NOTE: HTTP header is set by each auth type handler
             self.write("<h3>Permission denied!</h3>")
-            self.write(
-                "Please contact the backend dev-group if you do need permission."
-            )
+            self.write("Please contact the server team for permissions.")
             self.write("<br>Auth level: <strong>" + self.auth_type + "</strong>")
             self.finish()
         else:
@@ -212,9 +200,5 @@ class BaseExecuteHandler(tornado.web.RequestHandler):
             return False
 
 
-def main():
-    pass
-
-
 if __name__ == "__main__":
-    main()
+    pass

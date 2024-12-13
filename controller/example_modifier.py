@@ -173,7 +173,7 @@ def upload(ctx: Context, upload__file):
         "args": {
             "upload__file": {
                 "tip": "test.txt",
-                "desc": "File Path",
+                "desc": "File",
                 "input": "file"
             }
         }
@@ -288,18 +288,18 @@ def multi_form_target(ctx: Context, zone: int, opcode: int, upload__file):
                 "input": "select",
                 "options": {
                     "0": "Download",
-                    "1": "Upload",
-                    "2": "Run"
+                    "100": "Upload",
+                    "200": "Run"
                 },
                 "targets": {
                     "0": "_blank",
-                    "1": "_self",
-                    "2": "_blank"
+                    "100": "_self",
+                    "200": "_blank"
                 }
             },
             "upload__file": {
                 "tip": "test.txt",
-                "desc": "File Path",
+                "desc": "File",
                 "input": "file"
             }
         },

@@ -33,6 +33,7 @@ from core import auth
 from core import util
 from core.timespan import Timespan
 import config
+import authconf
 
 sys.path.append("common")
 sys.path.append("common/protocol")
@@ -187,10 +188,39 @@ class ControllerList(auth.BaseListHandler):
             # name pattern of python module is: A.B.C, convert it to A-B-C
             # to comply with HTML name pattern
             tab_name = module.__name__.replace(".", "-")
+            forms = util.get_forms_by_module(module)
+            # generate auth forms
+            auth_forms = {}
+            user = authconf.USERS.get(self.username)
+            for func_name, form in forms.items():
+                opcodes = {}
+                if "submit" in form and "options" in form["args"][form["submit"]]:
+                    for opcode in form["args"][form["submit"]]["options"].keys():
+                        if user.authorize(
+                            self.env,
+                            module.__name__,
+                            func_name,
+                            int(opcode),
+                        ):
+                            opcodes[opcode] = ""
+                        else:
+                            opcodes[opcode] = "disabled"
+                else:
+                    opcode = "0"  # default opcode is 0
+                    if user.authorize(
+                        self.env, module.__name__, func_name, int(opcode)
+                    ):
+                        opcodes[opcode] = ""
+                    else:
+                        opcodes[opcode] = "disabled"
+
+                auth_forms[func_name] = {"opcodes": opcodes}
+
             tabs[tab_name] = {
                 "module_name": module.__name__,
                 "desc": module.__doc__,
-                "forms": util.get_forms_by_module(module),
+                "forms": forms,
+                "auth_forms": auth_forms,
             }
         # log.debug(tabs)
         self.render(
@@ -291,16 +321,10 @@ def execute_request(handler: auth.BaseExecuteHandler, *args, **kwargs):
     trace_id = handler.get_argument("trace_id", 0)
     world = config.get_world(zone_id)
 
-    if world == config.WORLDS["WX"]:
-        env = config.ENVS["idc_wx"]
-
-    elif world == config.WORLDS["QQ"]:
-        env = config.ENVS["idc_qq"]
-    else:
-        if not zone_id or zone_id not in config.DEPLOYED_ZONES:
-            handler.write("not found zone: " + str(zone_id))
-            return
-        env = config.DEPLOYED_ZONES[zone_id]["env"]
+    if not zone_id or zone_id not in config.DEPLOYED_ZONES:
+        handler.write(f"not found zone: {zone_id}")
+        return
+    env = config.DEPLOYED_ZONES[zone_id]["env"]
 
     ctx = context.Context(
         account_type=account_type,
@@ -343,7 +367,7 @@ def execute_request(handler: auth.BaseExecuteHandler, *args, **kwargs):
     need_write_ecode = True
 
     uidlist = []
-    uidlist_str = handler.get_argument("__uidlist__", None)
+    uidlist_str = handler.get_argument("_uids", None)
     if uidlist_str:
         uidlist = map(int, uidlist_str.splitlines())
     else:
@@ -355,7 +379,6 @@ def execute_request(handler: auth.BaseExecuteHandler, *args, **kwargs):
 
         fixed_args = []
         for arg in args:
-            # TODO(wenchy): do type conversion due to type annotation
             fixed_args.append(arg)
         log.infoCtx(ctx, "fixed args: " + str(fixed_args))
         # result规范：

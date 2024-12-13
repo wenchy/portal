@@ -25,16 +25,19 @@ class User(object):
 
 class Users(object):
     def __init__(self):
-        self.users = collections.OrderedDict[str, User]()
+        self._users = collections.OrderedDict[str, User]()
 
     def add(self, username: str, password: str, roles: list[Role]):
-        self.users[username] = User(username, password, roles)
+        self._users[username] = User(username, password, roles)
 
     def add_user(self, user: User):
-        self.users[user.username] = user
+        self._users[user.username] = user
+
+    def get(self, username: str) -> User:
+        return self._users.get(username, None)
 
     def authenticate(self, username: str, password: str) -> bool:
-        user = self.users.get(username, None)
+        user = self._users.get(username, None)
         if user:
             return user.authenticate(password)
         return False
@@ -42,14 +45,14 @@ class Users(object):
     def authorize(
         self, username: str, env: str, module: str, func: str, opcode: int
     ) -> bool:
-        user = self.users.get(username, None)
+        user = self._users.get(username, None)
         if user:
             return user.authorize(env, module, func, opcode)
         return False
 
     def __repr__(self):
         out = ""
-        for user in self.users.values():
+        for user in self._users.values():
             out += f"{user}\n"
         return out
 

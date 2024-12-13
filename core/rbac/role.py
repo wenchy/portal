@@ -18,13 +18,16 @@ class Role(object):
         return f"Role(name={self.name}, perms={self.perms})"
 
 
+_WITHOUT_ADMIN_MODULE_PATTERN = r"^(?!admin\.).*"
+_WITHOUT_PROD_ENV_PATTERN = r"^(?!prod$).+$"
+
 # role "guest"
 GUEST = Role(
     "guest",
     [
         Perm(
-            env=r".*",  # except "prod"
-            module=r".*",
+            env=_WITHOUT_PROD_ENV_PATTERN,
+            module=_WITHOUT_ADMIN_MODULE_PATTERN,
             func=r".*",
             opcodes=[opcode.READ],
         ),
@@ -36,14 +39,14 @@ STAFF = Role(
     "staff",
     [
         Perm(
-            env=r"^(?!prod$).+$",  # except "prod"
-            module=r".*",
+            env=_WITHOUT_PROD_ENV_PATTERN,
+            module=_WITHOUT_ADMIN_MODULE_PATTERN,
             func=r".*",
             opcodes=[opcode.ALL],
         ),
         Perm(
             env="prod",  # only "prod"
-            module=r".*",
+            module=_WITHOUT_ADMIN_MODULE_PATTERN,
             func=r".*",
             opcodes=[opcode.READ],
         ),
