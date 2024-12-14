@@ -6,10 +6,12 @@ import traceback
 from typing import Any, Type, get_type_hints
 import inspect
 import functools
+from tornado import httputil
 
 
 def convert_type(value: Any, target_type: Type) -> Any:
     """Convert value to the target_type."""
+    log.debug(f"value: {value}, target_type: {target_type}")
     if target_type == int:
         return int(value)
     elif target_type == float:
@@ -18,6 +20,12 @@ def convert_type(value: Any, target_type: Type) -> Any:
         return str(value)
     elif target_type == bool:
         return bool(value)
+    elif target_type == File:
+        # see https://www.tornadoweb.org/en/stable/httputil.html#tornado.httputil.HTTPFile
+        if not value:
+            return None
+        file: httputil.HTTPFile = value
+        return File(file.filename, file.body, file.content_type)
     elif hasattr(
         target_type, "__origin__"
     ):  # Handle generic types like List, Dict, etc.
@@ -184,3 +192,24 @@ def parse_html_form(func):
     # log.debug(json.dumps(form))
     # log.debug(str(ordered_form))
     return ordered_form
+
+
+class File(object):
+    """Represents a file uploaded via a form.
+
+    * ``filename``
+    * ``body``
+    * ``content_type``
+    """
+
+    filename: str
+    body: bytes
+    content_type: str
+
+    def __init__(self, filename: str, body: bytes, content_type: str = "text/plain"):
+        self.filename = filename
+        self.body = body
+        self.content_type = content_type
+
+    def __repr__(self):
+        return f"File(filename={self.filename}, body_len={len(self.body)}), content_type={self.content_type}"

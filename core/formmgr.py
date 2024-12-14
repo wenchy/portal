@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from . import util
+from . import formutil
 from .logger import log
 
 DEFAULT_PACKAGE_NAME = "index"
@@ -49,7 +49,7 @@ def parse_package_forms(pkg_path: str):
         mod = __import__(pkg_fullname, fromlist=[module_name])
         imported_module = getattr(mod, module_name)
         module_name = imported_module.__name__
-        funcs = util.get_func_by_module(imported_module)
+        funcs = formutil.get_func_by_module(imported_module)
         package.modules.append(imported_module)
         package.indexes[module_name] = (imported_module, funcs)
     # sort by priority

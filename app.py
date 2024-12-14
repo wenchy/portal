@@ -31,6 +31,8 @@ from core import context
 from core import auth
 from core import util
 from core import formmgr
+from core import form
+from core import formutil
 from core.timespan import Timespan
 import config
 import authconf
@@ -98,7 +100,7 @@ class ControllerList(auth.BaseListHandler):
             # name pattern of python module is: A.B.C, convert it to A-B-C
             # to comply with HTML name pattern
             tab_name = module.__name__.replace(".", "-")
-            forms = util.get_forms_by_module(module)
+            forms = formutil.get_forms_by_module(module)
             # generate auth forms
             auth_forms = auth.gen_auth_forms(user, self.env, module.__name__, forms)
             tabs[tab_name] = {
@@ -174,15 +176,18 @@ def exec(handler: auth.BaseExecHandler, *args, **kwargs):
     log.debug("ctx: %s", ctx.debug_str())
 
     args = []
-    for param in util.get_func_parameters(func):
-        log.debugCtx(ctx, "arg_name: " + param.name)
-        if param.name.endswith("__file"):
+    for param in formutil.get_func_parameters(func):
+        log.debugCtx(ctx, f"param: {param}")
+        if formutil.is_file_argument(func, param.name):
             # assume as file if param name's suffix is '__file'
-            arg = handler.request.files.get(param.name, None)
+            arg = None
+            files = handler.request.files.get(param.name, None)
+            if files:
+                arg = files[0]
         else:
             # searches both the query and body arguments
             arg_list = handler.get_arguments(param.name)
-            if util.is_list_argument(func, param.name):
+            if formutil.is_list_argument(func, param.name):
                 arg = arg_list
             else:
                 if len(arg_list) == 0:
@@ -231,13 +236,14 @@ def exec(handler: auth.BaseExecHandler, *args, **kwargs):
                 need_write_ecode = True
             else:
                 if ecode == 0:
-                    if len(result) == 3 and isinstance(result[2], dict):
-                        handler.set_header("Content-Type", result[2]["content_type"])
+                    if len(result) == 2 and isinstance(result[1], form.File):
+                        file: form.File = result[1]
+                        handler.set_header("Content-Type", file.content_type)
                         handler.set_header(
                             "content-Disposition",
-                            "attachement; filename=" + result[2]["filename"],
+                            "attachement; filename=" + file.filename,
                         )
-                        handler.write(result[1])  # file content
+                        handler.write(file.body)  # file content
                         need_write_ecode = False
                     else:
                         for item in result[1:]:
@@ -246,7 +252,7 @@ def exec(handler: auth.BaseExecHandler, *args, **kwargs):
                     for item in result[1:]:
                         handler.write(util.to_text(item))
         elif util.is_json(result):
-            # must only ouptut json data
+            # must only output json data
             handler.write(util.to_text(result))
             need_write_ecode = False
         else:
