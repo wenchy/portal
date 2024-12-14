@@ -85,7 +85,7 @@ class BaseHandler(tornado.web.RequestHandler):
         #     log.debug("headers: " + name + ":" + value)
 
         # prepare common data members
-        self.auth_type = config.DEPLOYED_ENV["auth"]
+        self.auth_type = config.DEPLOYED_VENV["auth"]
         self.username = None  # To be filled by authentication
 
         # treat VENV as env for checking permissions

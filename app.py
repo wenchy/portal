@@ -113,7 +113,7 @@ class ControllerList(auth.BaseListHandler):
             package_names=formmgr.PACKAGE_NAMES,
             tabs=tabs,
             venv_name=config.VENV_NAME,
-            deployed_venv=config.DEPLOYED_ENV,
+            deployed_venv=config.DEPLOYED_VENV,
             venvs=config.VENVS,
             zones=config.DEPLOYED_ZONES,
             username=self.username,
@@ -290,7 +290,7 @@ def start_app(mode):
 
     # TODO: parse address and port from command arguments if provided
     address = "0.0.0.0"
-    port = config.DEPLOYED_ENV["port"]
+    port = config.DEPLOYED_VENV["port"]
     if mode == "singleprocess":
         settings["debug"] = False
         app = tornado.web.Application(handlers, **settings)

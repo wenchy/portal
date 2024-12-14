@@ -176,7 +176,7 @@ def parse_html_form(func):
     ordered_form.setdefault("layout", "1-column")
     ordered_form.setdefault("theme", "primary")
 
-    if config.VENV_NAME in config.DANGER_VENVS:
+    if config.VENV_NAME in config.DANGER_VENV_NAMES:
         log.debug(f"{config.VENV_NAME}: need confirm when submit the form")
         ordered_form["popup"] = "prompt"
         ordered_form["theme"] = "danger"

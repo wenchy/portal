@@ -7,7 +7,6 @@ import datetime
 import socket
 import sys
 import subprocess
-import time
 import hashlib
 import fnmatch
 import fcntl
@@ -120,33 +119,6 @@ def time2strf(timestamp, format="%Y-%m-%d %H:%M:%S"):
     return datetime.datetime.fromtimestamp(timestamp).strftime(format)
 
 
-# def gen_uid(zone_id, plat_id, luid):
-#     return (zone_id * (1 << 48)) | (plat_id << 32) | uin
-
-
-def get_world(uid):
-    huid = get_huid(uid)
-    return huid >> 28
-
-
-def get_zone(uid):
-    huid = get_huid(uid)
-    return (huid >> 16) & 0xFFF
-
-
-def get_platid(uid):
-    huid = get_huid(uid)
-    return (huid >> 10) & 0x3F
-
-
-def get_luid(uid):
-    return uid & 0x00000000FFFFFFFF
-
-
-def get_huid(uid):
-    return uid >> 32
-
-
 def to_text(item):
     # tornado write() only accepts bytes, str, and dict objects
     if item == None:
@@ -160,16 +132,6 @@ def to_text(item):
         return tornado.escape.to_unicode(item)
     else:
         return tornado.escape.to_unicode(str(item))
-
-
-def zoneid(world, zone):
-    # world:3.zone:13.function:6.instance:10
-    # world: max 7 (2 ** 3 - 1)
-    #   1: 微信
-    #   2: QQ
-    #   7: 测试(包括开发环境和测试环境)
-    # zone: max 8191 (2 ** 13 - 1)
-    return (world << 13) + zone
 
 
 def busid2str(bus_id):
@@ -191,14 +153,6 @@ def clean_html(raw_html):
     cleanre = re.compile("<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});")
     cleantext = re.sub(cleanre, "", raw_html)
     return cleantext
-
-
-class ArgComplete:
-    def autocomplete(self, parser):
-        log.warning("argcomplete not installed")
-
-
-argcomplete = ArgComplete()
 
 
 def exec_cmd(cmd, shell=True, need_log=True, with_exception=True, **kwargs):
