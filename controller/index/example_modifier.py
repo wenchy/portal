@@ -92,6 +92,57 @@ def modify_item(ctx: Context, id: int, num: int):
 
 
 @form.onpage
+def layout_and_theme(
+    ctx: Context,
+    from_server: str,
+    to_server: str,
+    begin: str,
+    end: str,
+    opcode: int,
+):
+    """
+    {
+        "title": "Layout and theme",
+        "theme": "info",
+        "layout": "2-column",
+        "args": {
+            "from_server": {
+                "desc": "From",
+                "tip": "default: all",
+                "input": "selectpicker",
+                "options": "$gen_server_dict"
+            },
+            "to_server": {
+                "desc": "To",
+                "tip": "default: all",
+                "input": "selectpicker",
+                "options": "$gen_server_dict"
+            },
+            "begin": {
+                "desc": "Begin",
+                "input": "datetime"
+            },
+            "end": {
+                "desc": "End",
+                "input": "datetime"
+            },
+            "opcode": {
+                "desc": "Operation",
+                "input": "select",
+                "options": {
+                    "0": "Query",
+                    "100": "Set",
+                    "101": "Reset"
+                }
+            }
+        },
+        "submit": "opcode"
+    }
+    """
+    return -1, "not implemented"
+
+
+@form.onpage
 def manage_whilelist(ctx: Context, whitelist_type: int, content: str, opcode: int):
     """
     {
