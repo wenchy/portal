@@ -155,9 +155,7 @@ def parse_html_form(func):
     except Exception as e:
         log.warning("exception: %s\n%s", str(e), traceback.format_exc())
         log.debug(
-            str(e)
-            + ", Unable to decode docstring as JSON, then just treat it as title: "
-            + func.__name__
+            f"failed to decode docstring as JSON, then just treat it as title: {func.__name__}"
         )
 
         if func.__doc__:

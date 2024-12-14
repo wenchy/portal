@@ -133,7 +133,7 @@ class BaseListHandler(BaseHandler):
         self._authenticate()
 
 
-class BaseExecuteHandler(BaseHandler):
+class BaseExecHandler(BaseHandler):
     def prepare(self):
 
         if not self._authenticate():

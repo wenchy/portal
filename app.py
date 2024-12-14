@@ -42,10 +42,10 @@ sys.path.append("common/protocol")
 class ControllerList(auth.BaseListHandler):
 
     def post(self, *args, **kwargs):
-        pkg_fullname = "controller.user"  # default
+        pkg_fullname = formmgr.DEFAULT_PACKAGE_FULLNAME
         if len(args) == 1 and args[0]:
             # package specified
-            pkg_fullname = f"controller.{args[0]}"
+            pkg_fullname = formmgr.fullname(args[0])
 
         param_type = self.get_argument("type", "")
         param_zone = self.get_argument("zone", "")
@@ -125,7 +125,7 @@ class ControllerList(auth.BaseListHandler):
     get = post
 
 
-class ControllerExecute(auth.BaseExecuteHandler):
+class ControllerExec(auth.BaseExecHandler):
     def post(self, *args, **kwargs):
         with Timespan(
             lambda duration: log.debug(
@@ -133,7 +133,7 @@ class ControllerExecute(auth.BaseExecuteHandler):
             )
         ):
             try:
-                execute_request(self, *args, **kwargs)
+                exec(self, *args, **kwargs)
             except Exception as e:
                 log.error("Caught exception: %s, %s", str(e), traceback.format_exc())
                 self.write(traceback.format_exc())
@@ -141,12 +141,12 @@ class ControllerExecute(auth.BaseExecuteHandler):
     get = post
 
 
-def execute_request(handler: auth.BaseExecuteHandler, *args, **kwargs):
+def exec(handler: auth.BaseExecHandler, *args, **kwargs):
     # Find the corresponding Python function object.
     #
     # Split a module name at the last occurrence of a dot (.) into two parts,
     # the first part is package name:
-    # e.g.: "controller.user.example_modifier" -> "controller.user"
+    # e.g.: "controller.index.example_modifier" -> "controller.index"
     pkg_fullname = handler.module.rsplit(".", 1)[0]
     func = formmgr.ALL_PACKAGES[pkg_fullname].indexes[handler.module][1][handler.func]
 
@@ -281,7 +281,7 @@ def start_app(mode):
         (rf"/", ControllerList),
         (rf"/{config.VENV_NAME}/?", ControllerList),
         (rf"/{config.VENV_NAME}/controller/list/(.*)", ControllerList),
-        (rf"/{config.VENV_NAME}/controller/exec", ControllerExecute),
+        (rf"/{config.VENV_NAME}/controller/exec", ControllerExec),
     ]
     # application kwargs: settings
     settings = {

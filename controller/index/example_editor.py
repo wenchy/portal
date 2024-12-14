@@ -1,4 +1,4 @@
-"""ExampleEditor"""
+"""Editor"""
 
 __priority__ = 1000
 
@@ -18,8 +18,8 @@ def manage_player(ctx: Context, _jsoneditor_content: str, opcode: int):
                 "input": "select",
                 "options": {
                      "0": "Query",
-                     "1": "Update",
-                     "2": "Delete"
+                     "100": "Update",
+                     "200": "Delete"
                 }
             }
         },
