@@ -24,18 +24,20 @@ def gen_server_dict():
 
 
 @form.onpage
-def process_server_time(ctx: Context, svr_name: str, datetime_str: str, opcode: int):
+def process_server_time(
+    ctx: Context, server: str, datetime: form.Datetime, opcode: int
+):
     """
     {
         "title": "Server time",
         "args": {
-            "svr_name": {
+            "server": {
                 "desc": "Server",
                 "tip": "default: all",
                 "input": "selectpicker",
                 "options": "$gen_server_dict"
             },
-            "datetime_str": {
+            "datetime": {
                 "desc": "Datetime",
                 "input": "datetime"
             },
@@ -52,9 +54,9 @@ def process_server_time(ctx: Context, svr_name: str, datetime_str: str, opcode: 
         "submit": "opcode"
     }
     """
-    offset = util.strf2time(datetime_str) - int(time.time())
+    offset = int(datetime.timestamp() - time.time())
 
-    return f"server {svr_name} time offset: {offset}"
+    return f"server {server} time offset: {offset}"
 
 
 # NOTE: Variable Injection
@@ -96,8 +98,8 @@ def layout_and_theme(
     ctx: Context,
     from_server: str,
     to_server: str,
-    begin: str,
-    end: str,
+    begin: form.Datetime,
+    end: form.Datetime,
     opcode: int,
 ):
     """
@@ -139,6 +141,8 @@ def layout_and_theme(
         "submit": "opcode"
     }
     """
+    if opcode == 0:
+        return f"from: {from_server}, to: {to_server}\nbegin: {begin}, end: {end}"
     return -1, "not implemented"
 
 

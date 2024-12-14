@@ -1,12 +1,62 @@
 import json
 import collections
-from core.logger import log
 import config
 import traceback
-from typing import Any, Type, get_type_hints
 import inspect
 import functools
+from typing import Any, Type, get_type_hints
+from datetime import datetime
 from tornado import httputil
+from core.logger import log
+
+
+class Datetime(datetime):
+    """Represents a datetime uploaded via a form."""
+
+    def __new__(cls, datetime_str: str):
+        # Create a new instance of the Datetime class
+        # Parse the string and create a datetime object
+        dt = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S")
+        # Return the new instance
+        return super(Datetime, cls).__new__(
+            cls, dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second
+        )
+
+
+class File(object):
+    """Represents a file uploaded via a form.
+
+    * ``filename``
+    * ``body``
+    * ``content_type``
+    """
+
+    filename: str
+    body: bytes
+    content_type: str
+
+    def __init__(self, filename: str, body: bytes, content_type: str = "text/plain"):
+        self.filename = filename
+        self.body = body
+        self.content_type = content_type
+
+    def __repr__(self):
+        return f"File(filename={self.filename}, body_len={len(self.body)}), content_type={self.content_type}"
+
+
+class Editor(object):
+    """Represents an editor uploaded via a form.
+
+    * ``body``
+    """
+
+    body: str
+
+    def __init__(self, body: str = "{}"):
+        self.body = body
+
+    def __repr__(self):
+        return f"Editor(body={self.body})"
 
 
 def convert_type(value: Any, target_type: Type) -> Any:
@@ -20,6 +70,10 @@ def convert_type(value: Any, target_type: Type) -> Any:
         return str(value)
     elif target_type == bool:
         return bool(value)
+    elif target_type == Datetime:
+        if not value:
+            return None
+        return Datetime(value)
     elif target_type == File:
         # see https://www.tornadoweb.org/en/stable/httputil.html#tornado.httputil.HTTPFile
         if not value:
@@ -196,39 +250,3 @@ def parse_html_form(func):
     # log.debug(json.dumps(form))
     # log.debug(str(ordered_form))
     return ordered_form
-
-
-class File(object):
-    """Represents a file uploaded via a form.
-
-    * ``filename``
-    * ``body``
-    * ``content_type``
-    """
-
-    filename: str
-    body: bytes
-    content_type: str
-
-    def __init__(self, filename: str, body: bytes, content_type: str = "text/plain"):
-        self.filename = filename
-        self.body = body
-        self.content_type = content_type
-
-    def __repr__(self):
-        return f"File(filename={self.filename}, body_len={len(self.body)}), content_type={self.content_type}"
-
-
-class Editor(object):
-    """Represents an editor uploaded via a form.
-
-    * ``body``
-    """
-
-    body: str
-
-    def __init__(self, body: str = "{}"):
-        self.body = body
-
-    def __repr__(self):
-        return f"Editor(body={self.body})"

@@ -24,7 +24,7 @@ Optional:
 | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | [module](https://docs.python.org/3/tutorial/modules.html)                                   | [tab](https://getbootstrap.com/docs/3.4/components/#nav-tabs)                                                                                                                                                                                          |
 | [function](https://docs.python.org/3/tutorial/controlflow.html#defining-functions)          | [form](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form)                                                                                                                                                                                 |
-| [arguments](https://docs.python.org/3/tutorial/controlflow.html#more-on-defining-functions) | - [input](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input) <br> - [textarea](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea) <br> - [select](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select)<br> |
+| [arguments](https://docs.python.org/3/tutorial/controlflow.html#more-on-defining-functions) | [input](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input) <br> [textarea](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea) <br> [select](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select) <br> datetime <br> editor |
 
 ## Nginx reverse proxy
 
@@ -70,13 +70,13 @@ Run as **daemon**:
 
 ```python
 @form.onpage
-def func(ctx, arg1, arg2, upload__file, opcode=0):
+def func(ctx, arg1, arg2, arg3, opcode=0):
     '''
     {
-        "title": "title demo",
+        "title": "...",
         "tip": "...",
-        "layout": "X-column",
-        "theme"" "primary|danger"
+        "layout": "1-column|2-column|3-column",
+        "theme"" "primary|danger|info"
         "target": "_self|_blank",
         "method": "get|post",
         "popup": "alert|prompt",
@@ -93,38 +93,37 @@ def func(ctx, arg1, arg2, upload__file, opcode=0):
             {
                 "input": "select",
                 "options": {
-                    "option1": "option1 demo",
-                    "option2": "option2 demo"
+                    "option1": "option1 desc",
+                    "option2": "option2 desc"
                 }
             },
-            "upload__file": {
-                "input": "file"
+            "arg3": {
+                "input": "file|datetime|editor"
             },
             "opcode": {
-                "desc": "Operation",
                 "input": "select",
                 "options": {
                     "0": "Query",
-                    "1": "Update",
-                    "2": "Delete"
+                    "100": "Update",
+                    "200": "Delete"
                 }
             }
         },
         "submit": "opcode"
     }
     '''
-    pass
-    return object...
+
     return ecode
     return ecode, object...
+    return object...
 	return form.File
 	return form.Editor
 ```
 
 ## Examples
 
-- *controller/index/example_modifier.py*
-- *controller/index/example_editor.py*
+- [example_modifier.py](controller/index/example_modifier.py)
+- [example_editor.py](controller/index/example_editor.py)
 
 
 ## Concurrency
@@ -136,14 +135,9 @@ Keep-alive and HTTP connection pooling are 100% automatic, thanks to urllib3.
 
 ## Authentication
 
-`core/auth.py`: auth implemented by python decorator. 
-
-A pluggable 6-level authentication module:
+A pluggable leveled authentication module:
 ```python
  auths = collections.OrderedDict([
-        ('admin',  {'handler': auth_admin,  'level': 6}),
-        ('oa',     {'handler': auth_oa,     'level': 5}),
-        ('test',   {'handler': auth_test,   'level': 4}),
         ('api',    {'handler': auth_api,    'level': 3}), # with API token
         ('basic',  {'handler': auth_basic,  'level': 2}), # http basic
         ('anonym', {'handler': auth_anonym, 'level': 1}), # anoymous
@@ -152,7 +146,7 @@ A pluggable 6-level authentication module:
 
 ## Authorization
 
-- [ ] Authorization: role-based access control (RBAC)
+- [x] Authorization: role-based access control (RBAC)
 
 ## Configuration
 

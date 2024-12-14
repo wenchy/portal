@@ -1,7 +1,5 @@
 import os
-import json
 import re
-import datetime
 import socket
 import sys
 import subprocess
@@ -10,6 +8,7 @@ import fnmatch
 import fcntl
 import struct
 import traceback
+from datetime import datetime
 
 import tornado
 from google.protobuf.message import Message as ProtoBufMessage
@@ -56,11 +55,11 @@ def get_ecode_name(ecode):
 
 
 def strf2time(timestr, format="%Y-%m-%d %H:%M:%S"):
-    return int(datetime.datetime.strptime(timestr, format).strftime("%s"))
+    return int(datetime.strptime(timestr, format).strftime("%s"))
 
 
 def time2strf(timestamp, format="%Y-%m-%d %H:%M:%S"):
-    return datetime.datetime.fromtimestamp(timestamp).strftime(format)
+    return datetime.fromtimestamp(timestamp).strftime(format)
 
 
 def html_font(input, color="black"):
@@ -68,7 +67,6 @@ def html_font(input, color="black"):
 
 
 def clean_html(raw_html):
-    # re.compile('<.*?>')
     cleanre = re.compile("<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});")
     cleantext = re.sub(cleanre, "", raw_html)
     return cleantext

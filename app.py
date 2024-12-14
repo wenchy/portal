@@ -248,10 +248,11 @@ def exec(handler: auth.BaseExecHandler, *args, **kwargs):
             ecode = 0
 
     if ecode != None:
+        handler.write("\n\n")
         if ecode == 0:
-            handler.write("\n🆗")
+            handler.write("🆗")
         else:
-            handler.write("\n❌ " + util.html_font(util.get_ecode_name(ecode), "red"))
+            handler.write("❌ " + util.html_font(util.get_ecode_name(ecode), "red"))
     handler.flush()  # Flushes the current output buffer to the network.
 
 
