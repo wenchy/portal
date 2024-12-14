@@ -4,6 +4,7 @@ __priority__ = 1
 
 from core import form
 from core.context import Context
+import authconf
 
 
 @form.onpage
@@ -26,7 +27,6 @@ def manage_whilelist(ctx: Context, whitelist_type: int, content: str, opcode: in
                 "input": "textarea"
             },
            "opcode": {
-                "desc": "Operation",
                 "input": "select",
                 "options": {
                      "0": "Query",
@@ -39,3 +39,22 @@ def manage_whilelist(ctx: Context, whitelist_type: int, content: str, opcode: in
     }
     """
     return -1, "not implemented"
+
+@form.onpage
+def query_users(ctx: Context, opcode: int):
+    """
+    {
+        "title": "Query users",
+        "args": {
+           "opcode": {
+                "input": "select",
+                "options": {
+                    "999": "Query"
+                }
+            }
+        },
+        "submit": "opcode"
+    }
+    """
+    return authconf.USERS
+

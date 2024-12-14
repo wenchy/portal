@@ -61,7 +61,7 @@ ADMIN = Role(
             env=r".*",
             module=r".*",
             func=r".*",
-            opcodes=[opcode.ALL],
+            opcodes=[opcode.ADMIN_ALL],
         ),
     ],
 )
