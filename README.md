@@ -66,9 +66,7 @@ Run as **daemon**:
 - logs/app.log*
  
 
-## Quick start
-
-### Rules
+## Specification
 
 ```python
 @form.onpage
@@ -116,95 +114,18 @@ def func(ctx, arg1, arg2, upload__file, opcode=0):
     }
     '''
     pass
+    return object...
     return ecode
-    return ecode, object
-	return 0, filecontent, {'content_type': 'text/plain', 'filename': 'filename.txt'}
+    return ecode, object...
+	return form.File
+	return form.Editor
 ```
 
-### Examples
+## Examples
 
-#### A simple form
+- *controller/index/example_modifier.py*
+- *controller/index/example_editor.py*
 
-```python
-@form.onpage
-def manage_player(ctx, username, opcode):
-    '''
-    {
-        "title": "Player",
-        "args": {
-            "username": {
-                "desc": "Username"
-            },
-            "opcode": {
-                "desc": "Operation",
-                "input": "select",
-                "options": {
-                    "0": "Query",
-                    "1": "Update",
-                    "2": "Delete"
-                }
-            }
-        },
-        "submit": "opcode"
-    }
-    '''
-    if opcode == 0:
-        return "query: "username
-    elif opcode == 1:
-        return "update: "username
-    else:
-        return "delete: "username
-```
-
-#### Upload file
-
-```python
-@form.onpage
-def upload(ctx, upload__file):
-    """
-    {
-        "title": "Upload File",
-        "enctype": "multipart/form-data",
-        "args": {
-            "upload__file": {
-                "tip": "test.txt",
-                "desc": "File Path",
-                "input": "file"
-            }
-        }
-    }
-    """
-    content = upload__file[0]["body"]
-    return 0, content
-```
-
-NOTE:
-- `"enctype": "multipart/form-data"`
-- `"input": "file"`，
-- The argument `upload__file` must be suffixed by`_file`
-
-#### Download file
-
-```python
-@form.onpage
-def download(ctx):
-    """
-    {
-        "title": "Download File",
-        "target": "_blank"
-    }
-    """
-    filename = "test.txt"
-    content = "This file content is generated from portal."
-    return 0, content, {"content_type": "text/plain", "filename": filename}
-```
-
-Returning 3 values:
-1. error code
-2. file content 
-3. HTTP response header: `{'content_type': 'text/plain', 'filename': filename}`
-
-In addition, **target** must be set to blank, e.g.: `"target": "_blank"`
 
 ## Concurrency
 

@@ -1,7 +1,16 @@
 import os
-from pathlib import Path
-from . import util
+from . import formutil
 from .logger import log
+
+DEFAULT_PACKAGE_NAME = "index"
+DEFAULT_PACKAGE_DIR = "controller"
+
+
+def fullname(name: str) -> str:
+    return f"{DEFAULT_PACKAGE_DIR}.{name}"
+
+
+DEFAULT_PACKAGE_FULLNAME = fullname(DEFAULT_PACKAGE_NAME)
 
 
 class Package(object):
@@ -23,19 +32,23 @@ PACKAGE_NAMES: list[str] = []
 
 
 def parse_package_forms(pkg_path: str):
-    modifier_module_names = [
+    module_names = [
         os.path.splitext(file_name)[0]
         for file_name in os.listdir(pkg_path)
         if file_name.endswith(("_modifier.py", "_editor.py"))
     ]
-    pkg_name = pkg_path.replace("/", ".")
-    package = Package(pkg_name)
-    for module_name in modifier_module_names:
+    # Packages are a way of structuring Python's module namespace by
+    # using "dotted module names".
+    #
+    # Convert path to name: A/B/C -> A.B.C
+    pkg_fullname = pkg_path.replace("/", ".")
+    package = Package(pkg_fullname)
+    for module_name in module_names:
         log.debug("add modifier module: " + module_name)
-        mod = __import__(pkg_name, fromlist=[module_name])
+        mod = __import__(pkg_fullname, fromlist=[module_name])
         imported_module = getattr(mod, module_name)
         module_name = imported_module.__name__
-        funcs = util.get_func_by_module(imported_module)
+        funcs = formutil.get_func_by_module(imported_module)
         package.modules.append(imported_module)
         package.indexes[module_name] = (imported_module, funcs)
     # sort by priority
@@ -44,15 +57,14 @@ def parse_package_forms(pkg_path: str):
     )
     # insert to all
     global ALL_PACKAGES
-    ALL_PACKAGES[pkg_name] = package
+    ALL_PACKAGES[pkg_fullname] = package
     log.debug(f"parsed package: {package}")
 
 
 def parse_controller_forms():
-    base_dir = "controller"
     # Iterate over all entries in the base directory
-    for entry in os.listdir(base_dir):
-        full_path = os.path.join(base_dir, entry)
+    for entry in os.listdir(DEFAULT_PACKAGE_DIR):
+        full_path = os.path.join(DEFAULT_PACKAGE_DIR, entry)
         if os.path.isdir(full_path) and entry != "__pycache__":
             parse_package_forms(full_path)
 

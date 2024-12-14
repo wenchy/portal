@@ -6,10 +6,12 @@ import traceback
 from typing import Any, Type, get_type_hints
 import inspect
 import functools
+from tornado import httputil
 
 
 def convert_type(value: Any, target_type: Type) -> Any:
     """Convert value to the target_type."""
+    log.debug(f"value: {value}, target_type: {target_type}")
     if target_type == int:
         return int(value)
     elif target_type == float:
@@ -18,6 +20,16 @@ def convert_type(value: Any, target_type: Type) -> Any:
         return str(value)
     elif target_type == bool:
         return bool(value)
+    elif target_type == File:
+        # see https://www.tornadoweb.org/en/stable/httputil.html#tornado.httputil.HTTPFile
+        if not value:
+            return None
+        file: httputil.HTTPFile = value
+        return File(file.filename, file.body, file.content_type)
+    elif target_type == Editor:
+        if not value:
+            return None
+        return Editor(value)
     elif hasattr(
         target_type, "__origin__"
     ):  # Handle generic types like List, Dict, etc.
@@ -155,9 +167,7 @@ def parse_html_form(func):
     except Exception as e:
         log.warning("exception: %s\n%s", str(e), traceback.format_exc())
         log.debug(
-            str(e)
-            + ", Unable to decode docstring as JSON, then just treat it as title: "
-            + func.__name__
+            f"failed to decode docstring as JSON, then just treat it as title: {func.__name__}"
         )
 
         if func.__doc__:
@@ -178,7 +188,7 @@ def parse_html_form(func):
     ordered_form.setdefault("layout", "1-column")
     ordered_form.setdefault("theme", "primary")
 
-    if config.VENV_NAME in config.DANGER_VENVS:
+    if config.VENV_NAME in config.DANGER_VENV_NAMES:
         log.debug(f"{config.VENV_NAME}: need confirm when submit the form")
         ordered_form["popup"] = "prompt"
         ordered_form["theme"] = "danger"
@@ -186,3 +196,39 @@ def parse_html_form(func):
     # log.debug(json.dumps(form))
     # log.debug(str(ordered_form))
     return ordered_form
+
+
+class File(object):
+    """Represents a file uploaded via a form.
+
+    * ``filename``
+    * ``body``
+    * ``content_type``
+    """
+
+    filename: str
+    body: bytes
+    content_type: str
+
+    def __init__(self, filename: str, body: bytes, content_type: str = "text/plain"):
+        self.filename = filename
+        self.body = body
+        self.content_type = content_type
+
+    def __repr__(self):
+        return f"File(filename={self.filename}, body_len={len(self.body)}), content_type={self.content_type}"
+
+
+class Editor(object):
+    """Represents an editor uploaded via a form.
+
+    * ``body``
+    """
+
+    body: str
+
+    def __init__(self, body: str = "{}"):
+        self.body = body
+
+    def __repr__(self):
+        return f"Editor(body={self.body})"

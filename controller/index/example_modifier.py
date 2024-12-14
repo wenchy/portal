@@ -1,4 +1,4 @@
-"""ExampleModifier"""
+"""Modifier"""
 
 __priority__ = 9999
 
@@ -10,7 +10,9 @@ from core.context import Context
 from typing import *
 
 
-# NOTE: function which returns dict can be injected into form "options"
+# NOTE: Function Injection
+#
+# A function which returns dict can be injected into form "options"
 # or "datalist", and it will be dynamically evaluated.
 # Injection pattern: "$FUNC_NAME"
 def gen_server_dict():
@@ -55,7 +57,9 @@ def process_server_time(ctx: Context, svr_name: str, datetime_str: str, opcode: 
     return f"server {svr_name} time offset: {offset}"
 
 
-# NOTE: variable which is dict can be injected into form "options"
+# NOTE: Variable Injection
+#
+# An variable which is a dict can be injected into form "options"
 # or "datalist", and it will be dynamically evaluated.
 # Injection pattern: "$VAR_NAME"
 _ITEM_DICT = collections.OrderedDict()
@@ -85,6 +89,57 @@ def modify_item(ctx: Context, id: int, num: int):
     type2 = type(num).__name__
     output += f"num: {num}, type is '{type2}'"
     return output
+
+
+@form.onpage
+def layout_and_theme(
+    ctx: Context,
+    from_server: str,
+    to_server: str,
+    begin: str,
+    end: str,
+    opcode: int,
+):
+    """
+    {
+        "title": "Layout and theme",
+        "theme": "info",
+        "layout": "2-column",
+        "args": {
+            "from_server": {
+                "desc": "From",
+                "tip": "default: all",
+                "input": "selectpicker",
+                "options": "$gen_server_dict"
+            },
+            "to_server": {
+                "desc": "To",
+                "tip": "default: all",
+                "input": "selectpicker",
+                "options": "$gen_server_dict"
+            },
+            "begin": {
+                "desc": "Begin",
+                "input": "datetime"
+            },
+            "end": {
+                "desc": "End",
+                "input": "datetime"
+            },
+            "opcode": {
+                "desc": "Operation",
+                "input": "select",
+                "options": {
+                    "0": "Query",
+                    "100": "Set",
+                    "101": "Reset"
+                }
+            }
+        },
+        "submit": "opcode"
+    }
+    """
+    return -1, "not implemented"
 
 
 @form.onpage
@@ -165,22 +220,21 @@ def send_mail(ctx: Context, title: str, content: str, attachments: str = ""):
 
 
 @form.onpage
-def upload(ctx: Context, upload__file):
+def upload(ctx: Context, file: form.File):
     """
     {
         "title": "Upload file",
         "enctype": "multipart/form-data",
         "args": {
-            "upload__file": {
-                "tip": "test.txt",
+            "file": {
+                "tip": "upload.txt",
                 "desc": "File",
                 "input": "file"
             }
         }
     }
     """
-    content = upload__file[0]["body"]
-    return 0, content
+    return file.body
 
 
 @form.onpage
@@ -191,9 +245,9 @@ def download(ctx: Context):
         "target": "_blank"
     }
     """
-    filename = "test.txt"
-    content = "This file content is generated from portal."
-    return 0, content, {"content_type": "text/plain", "filename": filename}
+    filename = "download.txt"
+    body = "This file is downloaded from portal."
+    return 0, form.File(filename, body)
 
 
 @form.onpage
@@ -273,7 +327,7 @@ def selectpicker(ctx: Context, box: int, boxes2: List[int]):
 
 
 @form.onpage
-def multi_form_target(ctx: Context, zone: int, opcode: int, upload__file):
+def multi_form_target(ctx: Context, zone: int, opcode: int, file: form.File):
     """
     {
         "title": "Multi form target",
@@ -297,8 +351,8 @@ def multi_form_target(ctx: Context, zone: int, opcode: int, upload__file):
                     "200": "_blank"
                 }
             },
-            "upload__file": {
-                "tip": "test.txt",
+            "file": {
+                "tip": "upload.txt",
                 "desc": "File",
                 "input": "file"
             }
@@ -309,16 +363,15 @@ def multi_form_target(ctx: Context, zone: int, opcode: int, upload__file):
 
     if opcode == 0:
         # download
-        filename = "test.txt"
-        content = "This file content is generated from portal."
-        return 0, content, {"content_type": "text/plain", "filename": filename}
-    elif opcode == 1:
+        filename = "download.txt"
+        body = "This file is downloaded from portal."
+        return form.File(filename, body)
+    elif opcode == 100:
         # upload
-        content = upload__file[0]["body"]
-        return 0, content
-    elif opcode == 2:
+        return file.body
+    elif opcode == 200:
         filename = "result.txt"
-        content = f"Run zone: {zone}"
-        return 0, content, {"content_type": "text/plain", "filename": filename}
+        body = f"Run zone: {zone}"
+        return form.File(filename, body)
 
     return -1, "not implemented"

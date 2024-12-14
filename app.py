@@ -31,6 +31,8 @@ from core import context
 from core import auth
 from core import util
 from core import formmgr
+from core import form
+from core import formutil
 from core.timespan import Timespan
 import config
 import authconf
@@ -42,10 +44,10 @@ sys.path.append("common/protocol")
 class ControllerList(auth.BaseListHandler):
 
     def post(self, *args, **kwargs):
-        pkg_fullname = "controller.user"  # default
+        pkg_fullname = formmgr.DEFAULT_PACKAGE_FULLNAME
         if len(args) == 1 and args[0]:
             # package specified
-            pkg_fullname = f"controller.{args[0]}"
+            pkg_fullname = formmgr.fullname(args[0])
 
         param_type = self.get_argument("type", "")
         param_zone = self.get_argument("zone", "")
@@ -98,7 +100,7 @@ class ControllerList(auth.BaseListHandler):
             # name pattern of python module is: A.B.C, convert it to A-B-C
             # to comply with HTML name pattern
             tab_name = module.__name__.replace(".", "-")
-            forms = util.get_forms_by_module(module)
+            forms = formutil.get_forms_by_module(module)
             # generate auth forms
             auth_forms = auth.gen_auth_forms(user, self.env, module.__name__, forms)
             tabs[tab_name] = {
@@ -113,7 +115,7 @@ class ControllerList(auth.BaseListHandler):
             package_names=formmgr.PACKAGE_NAMES,
             tabs=tabs,
             venv_name=config.VENV_NAME,
-            deployed_venv=config.DEPLOYED_ENV,
+            deployed_venv=config.DEPLOYED_VENV,
             venvs=config.VENVS,
             zones=config.DEPLOYED_ZONES,
             username=self.username,
@@ -125,7 +127,7 @@ class ControllerList(auth.BaseListHandler):
     get = post
 
 
-class ControllerExecute(auth.BaseExecuteHandler):
+class ControllerExec(auth.BaseExecHandler):
     def post(self, *args, **kwargs):
         with Timespan(
             lambda duration: log.debug(
@@ -133,7 +135,7 @@ class ControllerExecute(auth.BaseExecuteHandler):
             )
         ):
             try:
-                execute_request(self, *args, **kwargs)
+                exec(self, *args, **kwargs)
             except Exception as e:
                 log.error("Caught exception: %s, %s", str(e), traceback.format_exc())
                 self.write(traceback.format_exc())
@@ -141,12 +143,12 @@ class ControllerExecute(auth.BaseExecuteHandler):
     get = post
 
 
-def execute_request(handler: auth.BaseExecuteHandler, *args, **kwargs):
+def exec(handler: auth.BaseExecHandler, *args, **kwargs):
     # Find the corresponding Python function object.
     #
     # Split a module name at the last occurrence of a dot (.) into two parts,
     # the first part is package name:
-    # e.g.: "controller.user.example_modifier" -> "controller.user"
+    # e.g.: "controller.index.example_modifier" -> "controller.index"
     pkg_fullname = handler.module.rsplit(".", 1)[0]
     func = formmgr.ALL_PACKAGES[pkg_fullname].indexes[handler.module][1][handler.func]
 
@@ -174,15 +176,18 @@ def execute_request(handler: auth.BaseExecuteHandler, *args, **kwargs):
     log.debug("ctx: %s", ctx.debug_str())
 
     args = []
-    for param in util.get_func_parameters(func):
-        log.debugCtx(ctx, "arg_name: " + param.name)
-        if param.name.endswith("__file"):
+    for param in formutil.get_func_parameters(func):
+        log.debugCtx(ctx, f"param: {param}")
+        if formutil.is_file_argument(func, param.name):
             # assume as file if param name's suffix is '__file'
-            arg = handler.request.files.get(param.name, None)
+            arg = None
+            files = handler.request.files.get(param.name, None)
+            if files:
+                arg = files[0]
         else:
             # searches both the query and body arguments
             arg_list = handler.get_arguments(param.name)
-            if util.is_list_argument(func, param.name):
+            if formutil.is_list_argument(func, param.name):
                 arg = arg_list
             else:
                 if len(arg_list) == 0:
@@ -217,47 +222,36 @@ def execute_request(handler: auth.BaseExecuteHandler, *args, **kwargs):
         for arg in args:
             fixed_args.append(arg)
         log.infoCtx(ctx, "fixed args: " + str(fixed_args))
-        # result规范：
-        # 1. type(result) == tuple
-        #   (error_code, content, {content_type: 'Content-Type', filename: 'filename'})
-        # 2. 如果是json字符串，输出到前端json_editor
-        # 3. 其它，直接输出result，并且附带字符串"\nSUCCESS"
+        # result formats:
+        #   1. tuple: (ecode, [object...])
+        #   2. form.File
+        #   3. form.Editor
+        #   4. other: just textualize it
         result = func(*fixed_args)
-
+        ecode = None
         if isinstance(result, tuple):
-            # 如果返回类型是tuple，则默认第一个元素是error code
             ecode = result[0]
-            if len(result) == 1:
-                need_write_ecode = True
-            else:
-                if ecode == 0:
-                    if len(result) == 3 and isinstance(result[2], dict):
-                        handler.set_header("Content-Type", result[2]["content_type"])
-                        handler.set_header(
-                            "content-Disposition",
-                            "attachement; filename=" + result[2]["filename"],
-                        )
-                        handler.write(result[1])  # file content
-                        need_write_ecode = False
-                    else:
-                        for item in result[1:]:
-                            handler.write(util.to_text(item))
-                else:
-                    for item in result[1:]:
-                        handler.write(util.to_text(item))
-        elif util.is_json(result):
-            # must only ouptut json data
-            handler.write(util.to_text(result))
-            need_write_ecode = False
+            for item in result[1:]:
+                handler.write(util.textualize(item))
+        elif isinstance(result, form.File):
+            file: form.File = result
+            handler.set_header("Content-Type", file.content_type)
+            handler.set_header(
+                "content-Disposition", "attachement; filename=" + file.filename
+            )
+            handler.write(file.body)
+        elif isinstance(result, form.Editor):
+            editor: form.Editor = result
+            handler.write(editor.body)
         else:
-            handler.write(util.to_text(result))
+            handler.write(util.textualize(result))
             ecode = 0
 
-    if need_write_ecode:
+    if ecode != None:
         if ecode == 0:
-            handler.write("\n" + util.html_font(util.get_ecode_name(ecode), "green"))
+            handler.write("\n🆗")
         else:
-            handler.write("\n" + util.html_font(util.get_ecode_name(ecode), "red"))
+            handler.write("\n❌ " + util.html_font(util.get_ecode_name(ecode), "red"))
     handler.flush()  # Flushes the current output buffer to the network.
 
 
@@ -281,7 +275,7 @@ def start_app(mode):
         (rf"/", ControllerList),
         (rf"/{config.VENV_NAME}/?", ControllerList),
         (rf"/{config.VENV_NAME}/controller/list/(.*)", ControllerList),
-        (rf"/{config.VENV_NAME}/controller/exec", ControllerExecute),
+        (rf"/{config.VENV_NAME}/controller/exec", ControllerExec),
     ]
     # application kwargs: settings
     settings = {
@@ -290,7 +284,7 @@ def start_app(mode):
 
     # TODO: parse address and port from command arguments if provided
     address = "0.0.0.0"
-    port = config.DEPLOYED_ENV["port"]
+    port = config.DEPLOYED_VENV["port"]
     if mode == "singleprocess":
         settings["debug"] = False
         app = tornado.web.Application(handlers, **settings)

@@ -1,8 +1,8 @@
 {% for func_name, form in tab['forms'].items() %}
 
-{% if form['layout'] == '6-column' %}
+{% if form['layout'] == '3-column' %}
     <div class="col-xs-12 col-sm-12 col-md-12 item">
-{% elif form['layout'] == '4-column' %}
+{% elif form['layout'] == '2-column' %}
     <div class="col-xs-12 col-sm-12 col-md-8 item">
 {% else %}
    <div class="col-xs-6 col-sm-6 col-md-4 item">
@@ -41,20 +41,15 @@
                 <input type="hidden" name="_type" value=""> 
 
                 {% for arg_name, arg in form['args'].items() %}
-                    {% if arg_name in ["_jsoneditor_content"] %}
-                        <input type="hidden" name="{{ arg_name }}" value="" />
-                     {% elif arg_name in ["ctx"] %}
+                    {% if arg_name == "ctx" %}
                         <input type="hidden" name="_uid" value="" />
                         <input type="hidden" name="_zone" value="" />
+                    {% elif arg['input'] == 'editor' %}
+                        <input type="hidden" name="{{ arg_name }}" data-input-type="editor" value="" />
                     {% else %}
 
-                        {% if form['layout'] == '6-column' %}
-                            <div class="col-sm-2">
-                            {% set form_group_class='form_group_margin' %}
-                            {% set label_class='control-label' %}
-                            {% set input_class='' %}
-                        {% elif form['layout'] == '4-column' %}
-                            <div class="col-sm-3">
+                        {% if form['layout'] == '3-column' %}
+                            <div class="col-sm-4">
                             {% set form_group_class='form_group_margin' %}
                             {% set label_class='control-label' %}
                             {% set input_class='' %}
@@ -73,8 +68,8 @@
                             <div class="{{ form_group_class }} form-group form-group-sm has-feedback" {% if 'tip' in arg %} data-toggle="tooltip" data-placement="top" title="{{ arg['tip'] }}" {% end %}>
                                 <label class="{{ label_class }}">{{ arg['desc'] }}</label>
                                 <div class="{{ input_class }}">
-                                    <span class="glyphicon glyphicon-calendar form-control-feedback" aria-hidden="true"></span>
                                     <input name="{{ arg_name }}" type="text" class="form-control input-sm datetimepicker" {{ arg['status'] }}>
+                                    <span class="glyphicon glyphicon-calendar form-control-feedback" aria-hidden="true"></span>
                                 </div>
                             </div>
                         {% elif arg['input'] == 'select' %}

@@ -3,7 +3,7 @@ import grpc
 
 from core import context
 
-# NOTE: In gPRC Python, the metadata key must be lower case，otherwise, you will
+# NOTE: In gRPC Python, the metadata key must be lower case，otherwise, you will
 # encounter "TypeError: not all arguments converted during string formatting".
 MDKeyPacketHeaderBin = "x-packet-header-bin"
 

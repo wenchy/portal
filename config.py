@@ -61,38 +61,6 @@ ENVS = collections.OrderedDict(
 for name, value in ENVS.items():
     value["name"] = name
 
-WORLDS = {
-    "WX": 1,
-    "QQ": 2,
-    "dev": 7,
-}
-
-
-def zoneid(world, zone):
-    return (world << 13) + zone
-
-
-def get_world(zoneid: int):
-    return zoneid >> 13
-
-
-def get_zone(zoneid: int):
-    return zoneid & 0x1FFF
-
-
-ZONES = collections.OrderedDict(
-    [
-        (zoneid(7, 1), {"desc": "dev", "env": ENVS["dev"]}),
-        (zoneid(7, 2), {"desc": "test", "env": ENVS["test"]}),
-        (zoneid(7, 3), {"desc": "pre", "env": ENVS["pre"]}),
-        (zoneid(7, 11), {"desc": "prod", "env": ENVS["prod"]}),
-    ]
-)
-
-VENV_NAME = "dev"  # will be replaced to real env by deploy.sh
-
-DANGER_VENVS = []  # prompt when submit form
-
 # 部署环境配置: Virtual ENVironmentS
 # 此命名原因: 一个venv映射多个env, 以利于弹性部署
 # 部署目录: user00用户home目录下的`~/tornado`
@@ -136,7 +104,7 @@ VENVS = collections.OrderedDict(
                     (
                         "prod",
                         {
-                            "desc": "prod环境",
+                            "desc": "正式环境",
                             "path": "prod",
                             "envs": ["prod"],
                             "port": 9001,
@@ -152,24 +120,47 @@ VENVS = collections.OrderedDict(
 )
 
 
+def zoneid(world, zone):
+    return (world << 13) + zone
+
+
+def get_world(zoneid: int):
+    return zoneid >> 13
+
+
+def get_zone(zoneid: int):
+    return zoneid & 0x1FFF
+
+
+ZONES = collections.OrderedDict(
+    [
+        (zoneid(7, 1), {"desc": "dev", "env": ENVS["dev"]}),
+        (zoneid(7, 2), {"desc": "test", "env": ENVS["test"]}),
+        (zoneid(7, 3), {"desc": "pre", "env": ENVS["pre"]}),
+        (zoneid(7, 11), {"desc": "prod", "env": ENVS["prod"]}),
+    ]
+)
+
+
 def get_venv(venv_name):
-    for _, venvs in VENVS.items():
+    for venvs in VENVS.values():
         for name, venv in venvs.items():
             if name == venv_name:
                 return venv
 
 
-def filter_zones(deployed_env):
-    if deployed_env:
-        zones = collections.OrderedDict()
-        for zone_id, item in ZONES.items():
-            if item["env"]["name"] in deployed_env["envs"]:
-                zones[zone_id] = item
-        return zones
+def filter_zones(venv):
+    zones = collections.OrderedDict()
+    for zone_id, item in ZONES.items():
+        if item["env"]["name"] in venv["envs"]:
+            zones[zone_id] = item
+    return zones
 
 
-DEPLOYED_ENV = get_venv(VENV_NAME)
-DEPLOYED_ZONES = filter_zones(DEPLOYED_ENV)
+VENV_NAME = "dev"  # will be replaced to real env by deploy.sh
+DANGER_VENV_NAMES = []  # prompt when submit form
+DEPLOYED_VENV = get_venv(VENV_NAME)
+DEPLOYED_ZONES = filter_zones(DEPLOYED_VENV)
 
 
 def get_avatar_url(username: str) -> str:

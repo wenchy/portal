@@ -54,7 +54,7 @@ $(document).ready(function () {
     // view mode: handle large JSON documents up to 500 MiB.
     let jsoneditorOptions = {
         modes: ['view', 'form', 'tree', 'code', 'text'],
-        mode: 'view'
+        mode: 'tree'
     };
     var jsoneditorDict = {}
     $("div.jsoneditor").each(function () {
@@ -173,7 +173,7 @@ $(document).ready(function () {
             jsoneditor = jsoneditorDict[$jsoneditors.attr("id")];
             console.log("before jsoneditor-content: " + $jsoneditors.attr("id") + ", content: " + jsoneditor.getText())
             // Set jsoneditor's content
-            $(this).find(":input[name='_jsoneditor_content']").val(jsoneditor.getText());
+            $(this).find('input[data-input-type="editor"]').val(jsoneditor.getText());
         }
 
         // NOTE: unchecked checkboxes will not included in the serialized string.

@@ -1,19 +1,15 @@
 import os
 import json
-import inspect
-import collections
 import re
 import datetime
 import socket
 import sys
 import subprocess
-import time
 import hashlib
 import fnmatch
 import fcntl
 import struct
 import traceback
-import typing
 
 import tornado
 from google.protobuf.message import Message as ProtoBufMessage
@@ -31,75 +27,22 @@ def exception_catcher(func):
     return wrapper
 
 
-def get_forms_by_module(module):
-    forms = collections.OrderedDict()
-    # funcs = inspect.getmembers(module, inspect.isfunction)
-    funcs = get_ordered_funcs_by_module(module)
-    for func in funcs:
-        if hasattr(func[1], "__html_form__"):
-            forms[func[0]] = getattr(func[1], "__html_form__")
-    return forms
+def textualize(obj):
+    """
+    Convert various types of objects into a string representation suitable for use with Tornado.
 
-
-def get_ordered_funcs_by_module(module):
-    func_dict = {}
-    for func in inspect.getmembers(module, inspect.isfunction):
-        func_dict[func[0]] = func[1]
-    ordered_funcs = []
-    func_pattern = re.compile(r"def *([\w]+)\(")
-    log.debug("filepath: " + module.__file__)
-    with open(os.path.splitext(module.__file__)[0] + ".py", "r") as file:
-        func_names = func_pattern.findall(file.read())
-        for func_name in func_names:
-            # 剔除func_pattern匹配到的被注释掉的函数
-            if func_name in func_dict:
-                ordered_funcs.append((func_name, func_dict[func_name]))
-    log.debug("ordered_funcs" + str(ordered_funcs))
-    return ordered_funcs
-
-
-def get_func_parameters(func: typing.Callable) -> typing.List[inspect.Parameter]:
-    sig = inspect.signature(func)
-    return sig.parameters.values()
-
-
-def get_func_form(func: typing.Callable) -> collections.OrderedDict[str, any]:
-    return getattr(func, "__html_form__")
-
-
-def is_list_argument(func: typing.Callable, arg_name: str) -> bool:
-    form = get_func_form(func)
-    is_checkbox = form["args"][arg_name]["input"] == "checkbox"
-    is_multiple = "multiple" in form["args"][arg_name]
-    return is_checkbox or is_multiple
-
-
-def get_module_by_name(module_name):
-    imported_module = __import__(name=module_name)
-    return imported_module
-
-
-def get_func_by_module(module):
-    methods = {}
-    for method in dir(module):
-        method = getattr(module, method)
-        if callable(method) and hasattr(method, "__html_form__"):
-            methods[method.__name__] = method
-    return methods
-
-
-def get_func_by_module_name(module_name):
-    imported_module = get_module_by_name(module_name)
-    methods = get_func_by_module(imported_module)
-    return methods
-
-
-def is_json(test_str):
-    try:
-        json.loads(test_str)
-    except BaseException:
-        return False
-    return True
+    This function handles different types of input, including None, Protocol Buffers messages,
+    strings, bytes, and other objects. It ensures that the output is a Unicode string.
+    """
+    # NOTE: tornado write() only accepts bytes, str, and dict objects
+    if obj == None:
+        return ""
+    elif isinstance(obj, ProtoBufMessage):
+        return text_format.MessageToString(obj, as_utf8=True)
+    elif isinstance(obj, (str, bytes)):
+        return tornado.escape.to_unicode(obj)
+    else:
+        return tornado.escape.to_unicode(str(obj))
 
 
 def get_ecode_name(ecode):
@@ -120,68 +63,6 @@ def time2strf(timestamp, format="%Y-%m-%d %H:%M:%S"):
     return datetime.datetime.fromtimestamp(timestamp).strftime(format)
 
 
-# def gen_uid(zone_id, plat_id, luid):
-#     return (zone_id * (1 << 48)) | (plat_id << 32) | uin
-
-
-def get_world(uid):
-    huid = get_huid(uid)
-    return huid >> 28
-
-
-def get_zone(uid):
-    huid = get_huid(uid)
-    return (huid >> 16) & 0xFFF
-
-
-def get_platid(uid):
-    huid = get_huid(uid)
-    return (huid >> 10) & 0x3F
-
-
-def get_luid(uid):
-    return uid & 0x00000000FFFFFFFF
-
-
-def get_huid(uid):
-    return uid >> 32
-
-
-def to_text(item):
-    # tornado write() only accepts bytes, str, and dict objects
-    if item == None:
-        return str(item)
-    elif isinstance(item, ProtoBufMessage):
-        return text_format.MessageToString(item, as_utf8=True)
-    elif isinstance(item, (str, bytes)):
-        # Converts an itme to a  tring.
-        # If the argument is already a string or None, it is returned unchanged.
-        # Otherwise it must be a byte string and is decoded as utf8.
-        return tornado.escape.to_unicode(item)
-    else:
-        return tornado.escape.to_unicode(str(item))
-
-
-def zoneid(world, zone):
-    # world:3.zone:13.function:6.instance:10
-    # world: max 7 (2 ** 3 - 1)
-    #   1: 微信
-    #   2: QQ
-    #   7: 测试(包括开发环境和测试环境)
-    # zone: max 8191 (2 ** 13 - 1)
-    return (world << 13) + zone
-
-
-def busid2str(bus_id):
-    # world:3.zone:13.function:6.instance:10
-    busid = socket.ntohl(bus_id)
-    world = str(busid >> 29)
-    zone = str((busid >> 16) & 0x1FFF)
-    function = str((busid & 0xFFFF) >> 10)
-    instance = str((busid & 0xFFFF) & 0x3FF)
-    return world + "." + zone + "." + function + "." + instance
-
-
 def html_font(input, color="black"):
     return '<font color="' + color + '"><b>' + input + "</b></font>"
 
@@ -191,14 +72,6 @@ def clean_html(raw_html):
     cleanre = re.compile("<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});")
     cleantext = re.sub(cleanre, "", raw_html)
     return cleantext
-
-
-class ArgComplete:
-    def autocomplete(self, parser):
-        log.warning("argcomplete not installed")
-
-
-argcomplete = ArgComplete()
 
 
 def exec_cmd(cmd, shell=True, need_log=True, with_exception=True, **kwargs):

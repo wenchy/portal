@@ -1,4 +1,4 @@
-"""Example"""
+"""Modifier"""
 
 __priority__ = 1
 
