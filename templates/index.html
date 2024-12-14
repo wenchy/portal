@@ -1,41 +1,59 @@
 {% include header.html %}
 <div id="main_container" class="container">
-    {% if 'alert' in deployed_venv and deployed_venv['alert'] %}
-    <div class="alert alert-danger alert-dismissible" role="alert">
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
-        <h5><strong>⚠️WARNING</strong>: Please be careful, as you are visiting <span class="label label-danger">{{deployed_venv['desc']}}</span>.</h5>
+  {% if 'alert' in deployed_venv and deployed_venv['alert'] %}
+  <div class="alert alert-danger alert-dismissible" role="alert">
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+      <span aria-hidden="true">×</span>
+    </button>
+    <h5>
+      <strong>⚠️WARNING</strong>: Please be careful, as you are visiting
+      <span class="label label-danger">{{deployed_venv['desc']}}</span>.
+    </h5>
+  </div>
+  {% end %}
+  <div class="row row-offcanvas row-offcanvas-left">
+    <div id="sidebar" class="col-xs-6 col-sm-3 col-md-2 sidebar-offcanvas">
+      <!-- Tab navs -->
+      <ul class="nav nav-pills nav-stacked text-center" role="tablist">
+        {% for tab_name, tab in tabs.items() %}
+        <li>
+          <a
+            class="{{ tab_name }}"
+            href="#{{ tab_name }}"
+            aria-controls="{{ tab_name }}"
+            role="tab"
+            data-toggle="tab"
+          >
+            {{ tab['desc'] }}
+          </a>
+        </li>
+        {% end %}
+      </ul>
     </div>
-    {% end %}
-    <div class="row row-offcanvas row-offcanvas-left">
-        <div id="sidebar" class="col-xs-6 col-sm-3 col-md-2 sidebar-offcanvas">
-            <!-- Tab navs -->
-            <ul class="nav nav-pills nav-stacked text-center" role="tablist">
-                {% for tab_name, tab in tabs.items() %}
-                    <li>
-                        <a class="{{ tab_name }}" href="#{{ tab_name }}" aria-controls="{{ tab_name }}" role="tab" data-toggle="tab">
-                            {{ tab['desc'] }}
-                        </a>
-                    </li>
-                {% end %}
-            </ul>
+    <div class="col-xs-12 col-sm-9 col-md-10">
+      <!-- Tab panes -->
+      <div id="tab_body" class="tab-content">
+        {% for tab_name, tab in tabs.items() %}
+        <div
+          role="tabpanel"
+          class="tab-pane original-card-tabpanel"
+          id="{{ tab_name }}"
+        >
+          {% if tab_name.endswith("_editor") %}
+          <div class="row editor-container">
+            <div
+              id="{{ tab_name }}"
+              class="col-xs-12 col-sm-12 col-md-12 item jsoneditor"
+            ></div>
+          </div>
+          {% end %}
+          <div class="row cards-container masonry-container">
+            {% include cards.html %}
+          </div>
         </div>
-        <div class="col-xs-12 col-sm-9 col-md-10">
-            <!-- Tab panes -->
-            <div id="tab_body" class="tab-content">
-                {% for tab_name, tab in tabs.items() %}
-                <div role="tabpanel" class="tab-pane original-card-tabpanel" id="{{ tab_name }}">
-                    {% if tab_name.endswith("editor") %}
-                    <div class="row editor-container">
-                            <div id="{{ tab_name }}" class="col-xs-12 col-sm-12 col-md-12 item jsoneditor"> </div>
-                    </div>
-                    {% end %}
-                    <div class="row cards-container masonry-container">
-                        {% include cards.html %}
-                    </div>
-                </div>
-                {% end %}
-            </div>
-        </div>
+        {% end %}
+      </div>
     </div>
+  </div>
 </div>
 {% include footer.html %}

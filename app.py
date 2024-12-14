@@ -222,48 +222,36 @@ def exec(handler: auth.BaseExecHandler, *args, **kwargs):
         for arg in args:
             fixed_args.append(arg)
         log.infoCtx(ctx, "fixed args: " + str(fixed_args))
-        # result规范：
-        # 1. type(result) == tuple
-        #   (error_code, content, {content_type: 'Content-Type', filename: 'filename'})
-        # 2. 如果是json字符串，输出到前端json_editor
-        # 3. 其它，直接输出result，并且附带字符串"\nSUCCESS"
+        # result formats:
+        #   1. tuple: (ecode, [object...])
+        #   2. form.File
+        #   3. form.Editor
+        #   4. other: just textualize it
         result = func(*fixed_args)
-
+        ecode = None
         if isinstance(result, tuple):
-            # 如果返回类型是tuple，则默认第一个元素是error code
             ecode = result[0]
-            if len(result) == 1:
-                need_write_ecode = True
-            else:
-                if ecode == 0:
-                    if len(result) == 2 and isinstance(result[1], form.File):
-                        file: form.File = result[1]
-                        handler.set_header("Content-Type", file.content_type)
-                        handler.set_header(
-                            "content-Disposition",
-                            "attachement; filename=" + file.filename,
-                        )
-                        handler.write(file.body)  # file content
-                        need_write_ecode = False
-                    else:
-                        for item in result[1:]:
-                            handler.write(util.to_text(item))
-                else:
-                    for item in result[1:]:
-                        handler.write(util.to_text(item))
-        elif util.is_json(result):
-            # must only output json data
-            handler.write(util.to_text(result))
-            need_write_ecode = False
+            for item in result[1:]:
+                handler.write(util.textualize(item))
+        elif isinstance(result, form.File):
+            file: form.File = result
+            handler.set_header("Content-Type", file.content_type)
+            handler.set_header(
+                "content-Disposition", "attachement; filename=" + file.filename
+            )
+            handler.write(file.body)
+        elif isinstance(result, form.Editor):
+            editor: form.Editor = result
+            handler.write(editor.body)
         else:
-            handler.write(util.to_text(result))
+            handler.write(util.textualize(result))
             ecode = 0
 
-    if need_write_ecode:
+    if ecode != None:
         if ecode == 0:
-            handler.write("\n" + util.html_font(util.get_ecode_name(ecode), "green"))
+            handler.write("\n🆗")
         else:
-            handler.write("\n" + util.html_font(util.get_ecode_name(ecode), "red"))
+            handler.write("\n❌ " + util.html_font(util.get_ecode_name(ecode), "red"))
     handler.flush()  # Flushes the current output buffer to the network.
 
 

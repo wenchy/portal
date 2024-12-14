@@ -41,11 +41,11 @@
                 <input type="hidden" name="_type" value=""> 
 
                 {% for arg_name, arg in form['args'].items() %}
-                    {% if arg_name in ["_jsoneditor_content"] %}
-                        <input type="hidden" name="{{ arg_name }}" value="" />
-                     {% elif arg_name in ["ctx"] %}
+                    {% if arg_name == "ctx" %}
                         <input type="hidden" name="_uid" value="" />
                         <input type="hidden" name="_zone" value="" />
+                    {% elif arg['input'] == 'editor' %}
+                        <input type="hidden" name="{{ arg_name }}" data-input-type="editor" value="" />
                     {% else %}
 
                         {% if form['layout'] == '6-column' %}

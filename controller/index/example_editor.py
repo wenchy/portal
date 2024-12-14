@@ -8,11 +8,14 @@ from core.context import Context
 
 
 @form.onpage
-def manage_player(ctx: Context, _jsoneditor_content: str, opcode: int):
+def manage_player(ctx: Context, editor: form.Editor, opcode: int):
     """
     {
         "title": "Player data",
         "args": {
+            "editor": {
+                "input": "editor"
+            },
             "opcode": {
                 "desc": "Operation",
                 "input": "select",
@@ -36,12 +39,12 @@ def manage_player(ctx: Context, _jsoneditor_content: str, opcode: int):
 
     if opcode == 0:
         # TODO: query
-        return json_data
-    elif opcode == 1:
+        return form.Editor(json_data)
+    elif opcode == 100:
         # TODO: update
-        return json_data
-    elif opcode == 2:
+        return editor
+    elif opcode == 200:
         # TODO: delete
-        return
+        return form.Editor()
 
     return -1, "not implemented"

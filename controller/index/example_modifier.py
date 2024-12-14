@@ -314,13 +314,13 @@ def multi_form_target(ctx: Context, zone: int, opcode: int, file: form.File):
         # download
         filename = "download.txt"
         body = "This file is downloaded from portal."
-        return 0, form.File(filename, body)
-    elif opcode == 1:
+        return form.File(filename, body)
+    elif opcode == 100:
         # upload
         return file.body
-    elif opcode == 2:
+    elif opcode == 200:
         filename = "result.txt"
         body = f"Run zone: {zone}"
-        return 0, form.File(filename, body)
+        return form.File(filename, body)
 
     return -1, "not implemented"

@@ -27,12 +27,22 @@ def exception_catcher(func):
     return wrapper
 
 
-def is_json(test_str):
-    try:
-        json.loads(test_str)
-    except BaseException:
-        return False
-    return True
+def textualize(obj):
+    """
+    Convert various types of objects into a string representation suitable for use with Tornado.
+
+    This function handles different types of input, including None, Protocol Buffers messages,
+    strings, bytes, and other objects. It ensures that the output is a Unicode string.
+    """
+    # NOTE: tornado write() only accepts bytes, str, and dict objects
+    if obj == None:
+        return ""
+    elif isinstance(obj, ProtoBufMessage):
+        return text_format.MessageToString(obj, as_utf8=True)
+    elif isinstance(obj, (str, bytes)):
+        return tornado.escape.to_unicode(obj)
+    else:
+        return tornado.escape.to_unicode(str(obj))
 
 
 def get_ecode_name(ecode):
@@ -51,31 +61,6 @@ def strf2time(timestr, format="%Y-%m-%d %H:%M:%S"):
 
 def time2strf(timestamp, format="%Y-%m-%d %H:%M:%S"):
     return datetime.datetime.fromtimestamp(timestamp).strftime(format)
-
-
-def to_text(item):
-    # tornado write() only accepts bytes, str, and dict objects
-    if item == None:
-        return str(item)
-    elif isinstance(item, ProtoBufMessage):
-        return text_format.MessageToString(item, as_utf8=True)
-    elif isinstance(item, (str, bytes)):
-        # Converts an itme to a  tring.
-        # If the argument is already a string or None, it is returned unchanged.
-        # Otherwise it must be a byte string and is decoded as utf8.
-        return tornado.escape.to_unicode(item)
-    else:
-        return tornado.escape.to_unicode(str(item))
-
-
-def busid2str(bus_id):
-    # world:3.zone:13.function:6.instance:10
-    busid = socket.ntohl(bus_id)
-    world = str(busid >> 29)
-    zone = str((busid >> 16) & 0x1FFF)
-    function = str((busid & 0xFFFF) >> 10)
-    instance = str((busid & 0xFFFF) & 0x3FF)
-    return world + "." + zone + "." + function + "." + instance
 
 
 def html_font(input, color="black"):

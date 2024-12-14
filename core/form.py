@@ -26,6 +26,10 @@ def convert_type(value: Any, target_type: Type) -> Any:
             return None
         file: httputil.HTTPFile = value
         return File(file.filename, file.body, file.content_type)
+    elif target_type == Editor:
+        if not value:
+            return None
+        return Editor(value)
     elif hasattr(
         target_type, "__origin__"
     ):  # Handle generic types like List, Dict, etc.
@@ -213,3 +217,18 @@ class File(object):
 
     def __repr__(self):
         return f"File(filename={self.filename}, body_len={len(self.body)}), content_type={self.content_type}"
+
+
+class Editor(object):
+    """Represents an editor uploaded via a form.
+
+    * ``body``
+    """
+
+    body: str
+
+    def __init__(self, body: str = "{}"):
+        self.body = body
+
+    def __repr__(self):
+        return f"Editor(body={self.body})"
