@@ -18,7 +18,7 @@ class Role(object):
         return f"Role(name={self.name}, perms={self.perms})"
 
 
-_WITHOUT_ADMIN_MODULE_PATTERN = r"^(?!admin\.).*"
+_WITHOUT_ADMIN_MODULE_PATTERN = r"^(?!controller\.admin\.).*"
 _WITHOUT_PROD_ENV_PATTERN = r"^(?!prod$).+$"
 
 # role "guest"

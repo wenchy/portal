@@ -35,12 +35,15 @@ class Perm(object):
             # Check if opcode is in the list of opcodes
             for item in self.opcodes:
                 if isinstance(item, int):
-                    return opcode == item
+                    if opcode == item:
+                        return True
                 elif isinstance(item, tuple) and len(item) == 2:
                     begin, end = item
-                    return begin <= opcode < end
+                    if begin <= opcode < end:
+                        return True
                 else:
                     raise Exception(f"illegal opcode item: {item}")
+            return False
 
     def __repr__(self):
         return (

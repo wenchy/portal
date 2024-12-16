@@ -10,4 +10,5 @@ APIS = {
 USERS = Users()
 USERS.add("guest", "guestpw", [GUEST])
 USERS.add("staff", "staffpw", [STAFF])
+USERS.add("dev", "devpw", [GUEST, STAFF])
 USERS.add("admin", "adminpw", [ADMIN])

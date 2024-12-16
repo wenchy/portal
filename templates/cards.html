@@ -147,19 +147,24 @@
                 <!-- submit -->
                 <div style="padding: 3px 0"></div>
                
-                {% if 'submit' in form and 'options' in form['args'][form['submit']] %}
+                {% if 'submit' in form and form['submit'] in form['args'] %}
                 <div class="text-right">
                     {% for value,desc in form['args'][form['submit']]['options'].items() %}
                         <button type="button" 
                             {% if 'targets' in form['args'][form['submit']] and value in form['args'][form['submit']]['targets'] %} data-form-target="{{ form['args'][form['submit']]['targets'][value] }}" {% end %} 
                             arg_name="{{ form['submit'] }}" class="btn btn-default btn-sm submit-btn" arg_value="{{ value }}" 
-                            {{ tab['auth_forms'][func_name]['opcodes'][value] }}>{{ desc }}</button>
+                            {{ tab['auth_forms'][func_name]['opcodes'][int(value)] }}>{{ desc }}</button>
                     {% end %}
                 </div>
                 {% else %}
                 <div class="form-group">
                     <div class="col-sm-offset-4 col-sm-8">
-                        <button type="submit" class="btn btn-default btn-sm submit-btn" {{ tab['auth_forms'][func_name]['opcodes']['0'] }}>Submit</button>
+                        {% if 'submit' in form %}
+                            {% set opcode=form['submit'] %}
+                        {% else %}
+                            {% set opcode=0 %}
+                        {% end %}
+                        <button type="submit" class="btn btn-default btn-sm submit-btn" {{ tab['auth_forms'][func_name]['opcodes'][opcode] }}>Submit</button>
                     </div>
                 </div>
                 {% end %}

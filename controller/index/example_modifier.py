@@ -83,7 +83,8 @@ def modify_item(ctx: Context, id: int, num: int):
                 "tip": "negative number (-): decrease",
                 "default": "1"
             }
-        }
+        },
+        "submit": 100
     }
     """
     type1 = type(id).__name__
@@ -210,7 +211,8 @@ def send_mail(ctx: Context, title: str, content: str, attachments: str = ""):
                     "100000:100": "100 coins"
                 }
             }
-        }
+        },
+        "submit": 100
     }
     """
 
@@ -235,7 +237,8 @@ def upload(ctx: Context, file: form.File):
                 "desc": "File",
                 "input": "file"
             }
-        }
+        },
+        "submit": 100
     }
     """
     return file.body
@@ -287,7 +290,8 @@ def multi_checkbox(ctx: Context, boxes, boxes2: List[int]):
                    "30": "cat"
                 }
             }
-        }
+        },
+        "submit": 100
     }
     """
     type1 = type(boxes).__name__
@@ -320,7 +324,8 @@ def selectpicker(ctx: Context, box: int, boxes2: List[int]):
                    "30": "cat"
                 }
             }
-        }
+        },
+        "submit": 100
     }
     """
     type1 = type(box).__name__

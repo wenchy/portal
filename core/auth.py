@@ -171,26 +171,24 @@ class BaseExecHandler(BaseHandler):
 
 def gen_auth_forms(user: User, env_name: str, module_name: str, forms: dict) -> dict:
     """generate auth forms for disabling unauthorized opcodes"""
+    def authorize_opcode(opcodes: dict[int, str], opcode: int):
+        if user.authorize(env_name, module_name, func_name, opcode):
+            opcodes[opcode] = ""
+        else:
+            opcodes[opcode] = "disabled"
     auth_forms = {}
     for func_name, form in forms.items():
         opcodes = {}
-        if "submit" in form and "options" in form["args"][form["submit"]]:
-            for opcode in form["args"][form["submit"]]["options"].keys():
-                if user.authorize(
-                    env_name,
-                    module_name,
-                    func_name,
-                    int(opcode),
-                ):
-                    opcodes[opcode] = ""
-                else:
-                    opcodes[opcode] = "disabled"
-        else:
-            opcode = "0"  # default opcode is 0
-            if user.authorize(env_name, module_name, func_name, int(opcode)):
-                opcodes[opcode] = ""
+        if "submit" in form:
+            if type(form["submit"]) == int:
+                opcode = form["submit"]
+                authorize_opcode(opcodes, opcode)
             else:
-                opcodes[opcode] = "disabled"
+                for opcode in form["args"][form["submit"]]["options"].keys():
+                    authorize_opcode(opcodes, int(opcode))
+        else:
+            opcode = 0  # default opcode is 0
+            authorize_opcode(opcodes, opcode)
         auth_forms[func_name] = {"opcodes": opcodes}
 
     return auth_forms
