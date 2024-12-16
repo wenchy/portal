@@ -165,19 +165,19 @@ def exec(handler: auth.BaseExecHandler, *args, **kwargs):
     env = config.DEPLOYED_ZONES[zone_id]["env"]
 
     ctx = context.Context(
-        account_type=account_type,
         uid=uid,
+        account_type=account_type,
         zone_id=zone_id,
         env=env,
         trace_id=trace_id,
         extras=extras,
     )
 
-    log.debug("ctx: %s", ctx.debug_str())
+    log.debug(f"ctx: {ctx.dump()}")
 
     args = []
     for param in formutil.get_func_parameters(func):
-        log.debugCtx(ctx, f"param: {param}")
+        # log.debugCtx(ctx, f"param: {param}")
         if formutil.is_file_argument(func, param.name):
             # assume as file if param name's suffix is '__file'
             arg = None

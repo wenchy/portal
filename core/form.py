@@ -11,7 +11,7 @@ from core.logger import log
 
 
 class Datetime(datetime):
-    """Represents a datetime uploaded via a form."""
+    """Represents a datetime submitted via a form."""
 
     def __new__(cls, datetime_str: str):
         # Create a new instance of the Datetime class
@@ -45,7 +45,7 @@ class File(object):
 
 
 class Editor(object):
-    """Represents an editor uploaded via a form.
+    """Represents an editor submitted via a form.
 
     * ``body``
     """
@@ -61,7 +61,7 @@ class Editor(object):
 
 def convert_type(value: Any, target_type: Type) -> Any:
     """Convert value to the target_type."""
-    log.debug(f"value: {value}, target_type: {target_type}")
+    # log.debug(f"value: {value}, target_type: {target_type}")
     if target_type == int:
         return int(value)
     elif target_type == float:
