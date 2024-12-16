@@ -5,9 +5,7 @@ __priority__ = 9999
 import time
 import collections
 from core import form
-from core import util
 from core.context import Context
-from typing import *
 
 
 # NOTE: Function Injection
@@ -257,7 +255,7 @@ def confirm(ctx: Context):
 
 
 @form.onpage
-def multi_checkbox(ctx: Context, boxes, boxes2: List[int]):
+def multi_checkbox(ctx: Context, boxes, boxes2: list[int]):
     """
     {
         "title": "Multi checkbox",
@@ -290,7 +288,7 @@ def multi_checkbox(ctx: Context, boxes, boxes2: List[int]):
 
 
 @form.onpage
-def selectpicker(ctx: Context, box: int, boxes2: List[int]):
+def selectpicker(ctx: Context, box: int, boxes2: list[int]):
     """
     {
         "title": "Select picker",

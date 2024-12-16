@@ -166,6 +166,7 @@ A pluggable leveled authentication module:
 - [Masonry: Cascading grid layout library](https://masonry.desandro.com/)
 - [bootstrap-select](https://developer.snapappointments.com/bootstrap-select/)
 - [JSON Editor: A web-based tool to view, edit, format, and validate JSON](https://github.com/josdejong/jsoneditor)
+- [Python module](https://docs.python.org/3/tutorial/modules.html)
 - [Python inspect](https://docs.python.org/3/library/inspect.html)
 - [Python typing](https://docs.python.org/3/library/typing.html)
 - [Python function](https://docs.python.org/3/tutorial/controlflow.html#defining-functions)
