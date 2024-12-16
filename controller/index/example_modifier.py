@@ -24,9 +24,7 @@ def gen_server_dict():
 
 
 @form.onpage
-def process_server_time(
-    ctx: Context, server: str, datetime: form.Datetime, opcode: int
-):
+def process_server_time(ctx: Context, server: str, datetime: form.Datetime):
     """
     {
         "title": "Server time",
@@ -40,18 +38,15 @@ def process_server_time(
             "datetime": {
                 "desc": "Datetime",
                 "input": "datetime"
-            },
-            "opcode": {
-                "desc": "Operation",
-                "input": "select",
-                "options": {
-                    "0": "Query",
-                    "100": "Set",
-                    "101": "Reset"
-                }
             }
         },
-        "submit": "opcode"
+        "submit": {
+            "opcodes": {
+                "0": "Query",
+                "100": "Set",
+                "101": "Reset"
+            }
+        }
     }
     """
     offset = int(datetime.timestamp() - time.time())
@@ -101,7 +96,6 @@ def layout_and_theme(
     to_server: str,
     begin: form.Datetime,
     end: form.Datetime,
-    opcode: int,
 ):
     """
     {
@@ -128,27 +122,24 @@ def layout_and_theme(
             "end": {
                 "desc": "End",
                 "input": "datetime"
-            },
-            "opcode": {
-                "desc": "Operation",
-                "input": "select",
-                "options": {
-                    "0": "Query",
-                    "100": "Set",
-                    "101": "Reset"
-                }
             }
         },
-        "submit": "opcode"
+        "submit": {
+            "opcodes": {
+                "0": "Query",
+                "100": "Set",
+                "101": "Reset"
+            }
+        }
     }
     """
-    if opcode == 0:
+    if ctx.opcode == 0:
         return f"from: {from_server}, to: {to_server}\nbegin: {begin}, end: {end}"
     return -1, "not implemented"
 
 
 @form.onpage
-def manage_whilelist(ctx: Context, whitelist_type: int, content: str, opcode: int):
+def manage_whilelist(ctx: Context, whitelist_type: int, content: str):
     """
     {
         "title": "Whitelist",
@@ -165,18 +156,15 @@ def manage_whilelist(ctx: Context, whitelist_type: int, content: str, opcode: in
                 "tip": "one OpenID per line",
                 "desc": "OpenID",
                 "input": "textarea"
-            },
-           "opcode": {
-                "desc": "Operation",
-                "input": "select",
-                "options": {
-                     "0": "Query",
-                     "100": "Update",
-                     "200": "Delete"
-                }
             }
         },
-        "submit": "opcode"
+        "submit": {
+            "opcodes": {
+                "0": "Query",
+                "100": "Update",
+                "200": "Delete"
+            }
+        }
     }
     """
     return -1, "not implemented"
@@ -336,7 +324,7 @@ def selectpicker(ctx: Context, box: int, boxes2: List[int]):
 
 
 @form.onpage
-def multi_form_target(ctx: Context, zone: int, opcode: int, file: form.File):
+def multi_form_target(ctx: Context, zone: int, file: form.File):
     """
     {
         "title": "Multi form target",
@@ -346,39 +334,36 @@ def multi_form_target(ctx: Context, zone: int, opcode: int, file: form.File):
               "desc": "Zone",
               "default": "1"
             },
-            "opcode": {
-                "desc": "操作类型",
-                "input": "select",
-                "options": {
-                    "0": "Download",
-                    "100": "Upload",
-                    "200": "Run"
-                },
-                "targets": {
-                    "0": "_blank",
-                    "100": "_self",
-                    "200": "_blank"
-                }
-            },
             "file": {
                 "tip": "upload.txt",
                 "desc": "File",
                 "input": "file"
             }
         },
-        "submit": "opcode"
+        "submit": {
+            "opcodes": {
+                "0": "Download",
+                "100": "Upload",
+                "200": "Run"
+            },
+            "targets": {
+                "0": "_blank",
+                "100": "_self",
+                "200": "_blank"
+            }
+        }
     }
     """
 
-    if opcode == 0:
+    if ctx.opcode == 0:
         # download
         filename = "download.txt"
         body = "This file is downloaded from portal."
         return form.File(filename, body)
-    elif opcode == 100:
+    elif ctx.opcode == 100:
         # upload
         return file.body
-    elif opcode == 200:
+    elif ctx.opcode == 200:
         filename = "result.txt"
         body = f"Run zone: {zone}"
         return form.File(filename, body)

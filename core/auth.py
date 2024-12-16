@@ -184,7 +184,7 @@ def gen_auth_forms(user: User, env_name: str, module_name: str, forms: dict) -> 
                 opcode = form["submit"]
                 authorize_opcode(opcodes, opcode)
             else:
-                for opcode in form["args"][form["submit"]]["options"].keys():
+                for opcode in form["submit"]["opcodes"].keys():
                     authorize_opcode(opcodes, int(opcode))
         else:
             opcode = 0  # default opcode is 0

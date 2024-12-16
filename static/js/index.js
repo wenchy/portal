@@ -312,9 +312,10 @@ $(document).ready(function () {
         let form = $(this).parents("form");
         // data setter
         form.data('operation', $(this).text());
-        var selectorStr = "select[name='" + $(this).attr("arg_name") + "']";
-        form.find(selectorStr).val($(this).attr("arg_value"));
-        console.log(selectorStr + "  " + $(this).attr("arg_value") + " " + form.find(selectorStr).val());
+        let opcodeValue = $(this).attr("data-form-opcode")
+        let opcodeSelector = "input[name='_opcode']";
+        form.find(opcodeSelector).val(opcodeValue);
+        console.log(opcodeSelector + "  " + opcodeValue + " " + form.find(opcodeSelector).val());
 
         let oldFormTarget = form.attr("target");
 

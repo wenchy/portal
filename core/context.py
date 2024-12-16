@@ -2,6 +2,7 @@ class Context(object):
     """Represents a context submitted via a form.
 
     * ``uid: int``
+    * ``opcode: int``
     * ``account_type: int``
     * ``zone_id: int``
     * ``env: dict``: value of config.ENVS
@@ -10,6 +11,7 @@ class Context(object):
     """
 
     uid: int
+    opcode: int
     account_type: int
     zone_id: int
     env: dict
@@ -19,6 +21,7 @@ class Context(object):
     def __init__(
         self,
         uid: int,
+        opcode: int,
         account_type: int,
         zone_id: int,
         env: dict,
@@ -26,6 +29,7 @@ class Context(object):
         extras: dict,
     ):
         self.uid = uid
+        self.opcode = opcode
         self.account_type = account_type
         self.zone_id = zone_id
         self.env = env  # value of config.ENVS
@@ -52,4 +56,4 @@ if __name__ == "__main__":
         998300748311436289,
     )
     print(ctx)
-    print(ctx.debug_str())
+    print(ctx.dump())

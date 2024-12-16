@@ -8,25 +8,22 @@ from core.context import Context
 
 
 @form.onpage
-def manage_player(ctx: Context, editor: form.Editor, opcode: int):
+def manage_player(ctx: Context, editor: form.Editor):
     """
     {
         "title": "Player data",
         "args": {
             "editor": {
                 "input": "editor"
-            },
-            "opcode": {
-                "desc": "Operation",
-                "input": "select",
-                "options": {
-                     "0": "Query",
-                     "100": "Update",
-                     "200": "Delete"
-                }
             }
         },
-        "submit": "opcode"
+        "submit": {
+            "opcodes": {
+                "0": "Query",
+                "100": "Update",
+                "200": "Delete"
+            }
+        }
     }
     """
     data = {}
@@ -37,13 +34,13 @@ def manage_player(ctx: Context, editor: form.Editor, opcode: int):
     data["mapKey2"] = {"k1": True, "k2": False}
     json_data = json.dumps(data)
 
-    if opcode == 0:
+    if ctx.opcode == 0:
         # TODO: query
         return form.Editor(json_data)
-    elif opcode == 100:
+    elif ctx.opcode == 100:
         # TODO: update
         return editor
-    elif opcode == 200:
+    elif ctx.opcode == 200:
         # TODO: delete
         return form.Editor()
 

@@ -167,6 +167,11 @@ def parse_html_form(func):
     ordered_form = {"title": func.__name__, "args": collections.OrderedDict()}
 
     def parse_form(form, args, ordered_form):
+        if "submit" not in form:
+            form["submit"] = 0  # default
+        if "args" not in form:
+            form["args"] = {}
+
         # Populate ordered_form based on the form input
         form_props = [
             "title",
@@ -182,9 +187,6 @@ def parse_html_form(func):
         for key in form_props:
             if key in form:
                 ordered_form[key] = form[key]
-
-        if "args" not in form:
-            form["args"] = {}
 
         # Required: desc, input, and default
         for arg_name, default in args.items():

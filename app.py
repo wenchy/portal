@@ -155,9 +155,9 @@ def exec(handler: auth.BaseExecHandler, *args, **kwargs):
     extras = {"username": handler.username}
     account_type = int(handler.get_argument("_type", "0"))
     uid = int(handler.get_argument("_uid", 0))
+    opcode = int(handler.get_argument("_opcode", 0))
     zone_id = int(handler.get_argument("_zone"))
     trace_id = handler.get_argument("trace_id", 0)
-    world = config.get_world(zone_id)
 
     if not zone_id or zone_id not in config.DEPLOYED_ZONES:
         handler.write(f"not found zone: {zone_id}")
@@ -166,6 +166,7 @@ def exec(handler: auth.BaseExecHandler, *args, **kwargs):
 
     ctx = context.Context(
         uid=uid,
+        opcode=opcode,
         account_type=account_type,
         zone_id=zone_id,
         env=env,
@@ -204,9 +205,6 @@ def exec(handler: auth.BaseExecHandler, *args, **kwargs):
 
         args.append(arg)
 
-    ecode = -1
-    need_write_ecode = True
-
     uidlist = []
     uidlist_str = handler.get_argument("_uids", None)
     if uidlist_str:
@@ -214,6 +212,7 @@ def exec(handler: auth.BaseExecHandler, *args, **kwargs):
     else:
         uidlist.append(handler.get_argument("_uid", 0))
 
+    ecode = None
     for uid in uidlist:
         ctx.uid = int(uid)
         args[0] = ctx
@@ -228,7 +227,6 @@ def exec(handler: auth.BaseExecHandler, *args, **kwargs):
         #   3. form.Editor
         #   4. other: just textualize it
         result = func(*fixed_args)
-        ecode = None
         if isinstance(result, tuple):
             ecode = result[0]
             for item in result[1:]:
