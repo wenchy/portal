@@ -5,31 +5,24 @@ set -e
 function Usage() {
     echo ""
     echo "Usage: $0 <ENV> [DEST] [USERNAME] [VERSION] [TAG]"
-    echo ""
-    echo "ENV部署的环境"
-    echo ""
-    python -c "import config;config.help()"
 
     echo ""
-    echo "（可选参数）SERVER默认推送到的服务器"
     echo ""
-    echo "  local: 本地"
-    echo " devtool: 开发网"
-    echo " idctool: 外网"
+    echo "optional DEST local, remote"
 
     echo ""
-    echo "（可选参数）USERNAME: 部署人姓名"
+    echo "optional USERNAM"
 
     echo ""
-    echo "（可选参数）VERSION版本号: 点分十进制表示"
+    echo "optional VERSION"
 }
 
 ROOT_DIR=$(git rev-parse --show-toplevel)
 
 function GenProtobuf() {
+    echo "generating protobuf"
     cd ${ROOT_DIR}
     ./scripts/genpb.sh
-    echo "generate protobuf for python"
 }
 
 function GenLocal() {
@@ -47,8 +40,8 @@ function GenVersionInfo() {
     commit=$(git log --pretty=format:'%h' -n 1)
     deployer="${USERNAME} at $(date "+%Y-%m-%d %H:%M:%S")"
     # replace some fields
-    sed -i "s#_VERSION_#${TAG}\ ${commit}#g" ${LOCAL_PATH}/template/header.html
-    sed -i "s#_DEPLOYER_#${deployer}#g" ${LOCAL_PATH}/template/header.html
+    sed -i "s#_VERSION_#${TAG}\ ${commit}#g" ${LOCAL_PATH}/templates/header.html
+    sed -i "s#_DEPLOYER_#${deployer}#g" ${LOCAL_PATH}/templates/header.html
 }
 
 function GenAll() {
@@ -56,7 +49,7 @@ function GenAll() {
     GenProtobuf
     GenLocal $LOCAL_PATH
     GenVersionInfo
-    sed -i "/VENV_NAME/s/unknown/${DEPLOY_ENV}/g" ${LOCAL_PATH}/config.py
+    sed -i "/VENV_NAME/s/dev/${DEPLOY_ENV}/g" ${LOCAL_PATH}/config.py
 }
 
 function TarTgz() {
@@ -76,9 +69,6 @@ function PushRemote() {
 }
 
 #################### main ####################
-# color
-COLOR_RED='\033[0;31m'
-COLOR_RESET='\033[0m'
 
 # default global conf
 DEPLOY_ENV="dev"
@@ -87,7 +77,7 @@ VERSION=""
 TAG=""
 USERNAME="${USER}"
 
-dev_envs=("dev" "test" "lab")
+dev_envs=("lab" "dev" "test")
 
 # parse params
 if [ $# -eq 1 ]; then
@@ -117,7 +107,7 @@ elif [ $# -ge 2 ]; then
         TAG="$5"
     fi
 
-    if [[ $DEST != "local" && $DEST != "devtool" && $DEST != "idctool" ]]; then
+    if [[ $DEST != "local" && $DEST != "remote" ]]; then
         echo "illegal DEST argument: $DEST"
         Usage
         exit 1
@@ -154,21 +144,12 @@ if [[ "$DEST" == "local" ]]; then
          DEST_IP: local
        DEST_PATH: ${DEST_PATH}"
 
-elif [[ "$DEST" == "devtool" ]]; then
-    PushRemote $LOCAL_PATH $DEST_IP $DEST_PATH
+elif [[ "$DEST" == "remote" ]]; then
+    TarTgz
     echo -e "----- Deploy Info -----
      DEPLOY_NAME: $DEPLOY_NAME
       LOCAL_PATH: $LOCAL_PATH
          DEST_IP: $DEST_IP
        DEST_PATH: $DEST_PATH
-             URL: http://xxx.com/${DEPLOY_ENV}/"
-
-elif [[ "$DEST" == "idctool" ]]; then
-    TarTgz
-    echo -e "----- Deploy Info -----
-     DEPLOY_NAME: $DEPLOY_NAME
-      LOCAL_PATH: $LOCAL_PATH
-         DEST_IP: 127.0.0.1
-       DEST_PATH: /data/home/user00/tornado
              URL: http://xxx.com/${DEPLOY_ENV}/"
 fi

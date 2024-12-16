@@ -70,7 +70,7 @@ Run as **daemon**:
 
 ```python
 @form.onpage
-def func(ctx, arg1, arg2, arg3, opcode=0):
+def func(ctx, arg1, arg2, arg3):
     '''
     {
         "title": "...",
@@ -124,8 +124,8 @@ def func(ctx, arg1, arg2, arg3, opcode=0):
     return ecode
     return ecode, object...
     return object...
-	return form.File
-	return form.Editor
+    return form.File
+    return form.Editor
 ```
 
 ## Examples
@@ -146,8 +146,8 @@ Keep-alive and HTTP connection pooling are 100% automatic, thanks to urllib3.
 A pluggable leveled authentication module:
 ```python
  auths = collections.OrderedDict([
-        ('api',    {'handler': auth_api,    'level': 3}), # with API token
-        ('basic',  {'handler': auth_basic,  'level': 2}), # http basic
+        ('api',    {'handler': auth_api,    'level': 3}), # API token
+        ('basic',  {'handler': auth_basic,  'level': 2}), # HTTP basic
         ('anonym', {'handler': auth_anonym, 'level': 1}), # anoymous
     ])
 ```
