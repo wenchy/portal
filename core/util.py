@@ -44,14 +44,14 @@ def textualize(obj):
         return tornado.escape.to_unicode(str(obj))
 
 
-def get_ecode_name(ecode):
+def get_ecode_details(ecode):
     try:
         if ecode == 0:
             return "OK"
         else:
-            return "Error: " + str(ecode)
+            return f"Error: {ecode}"
     except KeyError:
-        return "Error: ERR_UNKNOWN(%d)" % ecode
+        return f"Error: ERR_UNKNOWN({ecode})"
 
 
 def strf2time(timestr, format="%Y-%m-%d %H:%M:%S"):
@@ -62,7 +62,7 @@ def time2strf(timestamp, format="%Y-%m-%d %H:%M:%S"):
     return datetime.fromtimestamp(timestamp).strftime(format)
 
 
-def html_font(text, size = "12px", color="black"):
+def html_font(text, size="12px", color="black"):
     return f'<span style="font-size: {size}, color:{color}">{text}</span>'
 
 
