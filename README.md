@@ -87,29 +87,37 @@ def func(ctx, arg1, arg2, arg3, opcode=0):
                 "desc": "...",
                 "input": "text|textarea",
                 "default": "...",
-                "status": "readonly|disabled"
+                "status": "readonly|disabled",
+                "datalist": {
+                    "option1": "desc1",
+                    "option2": "desc2"
+                }
             },
             "arg2":
             {
                 "input": "select",
                 "options": {
-                    "option1": "option1 desc",
-                    "option2": "option2 desc"
+                    "option1": "desc1",
+                    "option2": "desc2"
                 }
             },
             "arg3": {
                 "input": "file|datetime|editor"
-            },
-            "opcode": {
-                "input": "select",
-                "options": {
-                    "0": "Query",
-                    "100": "Update",
-                    "200": "Delete"
-                }
             }
         },
-        "submit": "opcode"
+        "submit": 100,
+        "submit": {
+            "opcodes": {
+                "0": "Query",
+                "100": "Update",
+                "200": "Delete"
+            },
+            "targets": {
+                "0": "_blank",
+                "100": "_self",
+                "200": "_blank"
+            }
+        }
     }
     '''
 

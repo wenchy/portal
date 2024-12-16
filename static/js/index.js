@@ -233,12 +233,9 @@ $(document).ready(function () {
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 console.log(jqXHR)
-                $resultPanel.append("\najax failed");
-                $resultPanel.append("\nstatus: " + jqXHR.status);
-                $resultPanel.append("\ntextStatus: " + textStatus);
-                $resultPanel.append("\nerrorThrown: " + errorThrown);
-                if (errorThrown.trim() == "Unauthorized") {
-                    if (confirm('Unauthorized, please refresh webpage.')) {
+                $resultPanel.append(`\n\n❌ <font color="red">${jqXHR.status} ${errorThrown}</font>`);
+                if (jqXHR.status === 401) {
+                    if (confirm('Unauthorized, please reload webpage.')) {
                         location.reload(true);
                     }
                 }

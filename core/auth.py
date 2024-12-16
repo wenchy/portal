@@ -140,11 +140,11 @@ class BaseExecHandler(BaseHandler):
             return
 
         # prepare common data members
-        self.zone: int = int(self.get_argument("_zone"), 0)
+        self.zone: int = int(self.get_argument("_zone"))
         self.env: str = config.ZONES[self.zone]["env"]["name"]
-        self.module: str = self.get_argument("_module", "")
-        self.func: str = self.get_argument("_func", "")
-        self.opcode: int = int(self.get_argument("opcode", 0))
+        self.module: str = self.get_argument("_module")
+        self.func: str = self.get_argument("_func")
+        self.opcode: int = int(self.get_argument("_opcode"))
 
         self._authorize()
 
@@ -171,11 +171,15 @@ class BaseExecHandler(BaseHandler):
 
 def gen_auth_forms(user: User, env_name: str, module_name: str, forms: dict) -> dict:
     """generate auth forms for disabling unauthorized opcodes"""
+
     def authorize_opcode(opcodes: dict[int, str], opcode: int):
+        # comment out for test
+        # opcodes[opcode] = ""
         if user.authorize(env_name, module_name, func_name, opcode):
             opcodes[opcode] = ""
         else:
             opcodes[opcode] = "disabled"
+
     auth_forms = {}
     for func_name, form in forms.items():
         opcodes = {}

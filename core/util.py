@@ -62,8 +62,8 @@ def time2strf(timestamp, format="%Y-%m-%d %H:%M:%S"):
     return datetime.fromtimestamp(timestamp).strftime(format)
 
 
-def html_font(input, color="black"):
-    return '<font color="' + color + '"><b>' + input + "</b></font>"
+def html_font(text, size = "12px", color="black"):
+    return f'<span style="font-size: {size}, color:{color}">{text}</span>'
 
 
 def clean_html(raw_html):
