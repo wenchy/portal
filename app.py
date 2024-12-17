@@ -15,16 +15,17 @@ DEMONSTRATION
     python3 app.py multiprocess test
 """
 
+import sys
 import collections
 import traceback
+from http import HTTPStatus
+
 import tornado.websocket
 import tornado.gen
 import tornado.options
 import tornado.ioloop
 import tornado.httpserver
 import tornado.web
-import sys
-from http import HTTPStatus
 
 from core.logger import log
 from core import context
@@ -44,55 +45,40 @@ sys.path.append("common/protocol")
 class ControllerList(auth.BaseListHandler):
 
     def post(self, *args, **kwargs):
-        pkg_fullname = formmgr.DEFAULT_PACKAGE_FULLNAME
-        if len(args) == 1 and args[0]:
-            # package specified
-            pkg_fullname = formmgr.fullname(args[0])
-
         param_type = self.get_argument("type", "")
         param_zone = self.get_argument("zone", "")
         param_uid = self.get_argument("uid", "")
+        self.request.query
 
         # process redirect logic
         if param_type and param_zone and param_uid:
             # redirect by zone_id
             zone_id = int(param_zone)
-            if zone_id in config.ZONES:
-                redirected_venv_name = config.ZONES[zone_id]["env"]["redirection"]
-                venv = config.get_venv(redirected_venv_name)
-                if venv:
-                    if (
-                        redirected_venv_name != config.VENV_NAME
-                    ):  # 相同env_name无需重定向，否则会导致redirect死循环:
-                        redirect_url = (
-                            venv["domain"]
-                            + "/"
-                            + venv["path"]
-                            + "/modifier/list?"
-                            + "type="
-                            + param_type
-                            + "&"
-                            + "zone="
-                            + param_zone
-                            + "&"
-                            + "uid="
-                            + param_uid
-                        )
-                        self.redirect(redirect_url)
-                    else:
-                        # 此处说明env_name相同，无需重定向
-                        log.debug("no need to redirect")
-                else:
-                    self.write(
-                        "unknown redirected venv name: %s(%d)"
-                        % (redirected_venv_name, zone_id)
-                    )
-                    return
-            else:
-                self.write("unknown zone id: %d" % zone_id)
-                self.finish()
+            if zone_id not in config.ZONES:
+                self.set_status(HTTPStatus.NOT_FOUND)
+                self.write(f"unknown zone id: {zone_id}")
                 return
+            redirect_venv_name = config.ZONES[zone_id]["env"]["redirect"]
+            venv = config.get_venv(redirect_venv_name)
+            if not venv:
+                self.set_status(HTTPStatus.NOT_FOUND)
+                self.write(f"unknown redirect venv: {redirect_venv_name}({zone_id})")
+                return
+            if redirect_venv_name != config.VENV_NAME:
+                base_url = f"{venv["domain"]}/{venv["path"]}/"
+                redirect_url = f"{base_url}?{self.request.query}"
+                self.redirect(redirect_url)
+            else:
+                # same venv name, no need to redirect
+                log.debug("no need to redirect")
 
+        pkg_fullname = formmgr.DEFAULT_PACKAGE_FULLNAME
+        if len(args) == 1 and args[0]:
+            # package specified
+            pkg_fullname = formmgr.fullname(args[0])
+        if pkg_fullname not in formmgr.ALL_PACKAGES:
+            self.set_status(HTTPStatus.NOT_FOUND)
+            return
         modules = formmgr.ALL_PACKAGES[pkg_fullname].modules
         tabs = collections.OrderedDict()
         user = authconf.USERS.get(self.username)

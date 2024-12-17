@@ -63,7 +63,7 @@ def auth_api(handler):
         signature = handler.get_argument("signature", "")
         timestamp = handler.get_argument("timestamp", "")
         encoded = hashlib.md5((appkey + timestamp).encode("utf-8")).hexdigest()
-        log.debug("encoded = {} | signature = {}".format(encoded, signature))
+        log.debug(f"encoded = {encoded} | signature = {signature}")
         if encoded == signature:
             return True, appid
     return False, appid

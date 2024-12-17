@@ -6,7 +6,7 @@ ENVS = collections.OrderedDict(
             "dev",
             {
                 "desc": "dev",
-                "redirection": "dev",
+                "redirect": "dev",
                 "gate": {"ip": "127.0.0.1", "port": 8080},
                 "redis": {
                     "host": "127.0.0.1",
@@ -19,7 +19,7 @@ ENVS = collections.OrderedDict(
             "test",
             {
                 "desc": "test",
-                "redirection": "test",
+                "redirect": "test",
                 "gate": {"ip": "127.0.0.1", "port": 8080},
                 "redis": {
                     "host": "127.0.0.1",
@@ -32,7 +32,7 @@ ENVS = collections.OrderedDict(
             "pre",
             {
                 "desc": "pre",
-                "redirection": "pre",
+                "redirect": "pre",
                 "gate": {"ip": "127.0.0.1", "port": 8080},
                 "redis": {
                     "host": "127.0.0.1",
@@ -45,7 +45,7 @@ ENVS = collections.OrderedDict(
             "prod",
             {
                 "desc": "prod",
-                "redirection": "prod",
+                "redirect": "prod",
                 "gate": {"ip": "127.0.0.1", "port": 8080},
                 "redis": {
                     "host": "127.0.0.1",
@@ -134,10 +134,10 @@ def get_zone(zoneid: int):
 
 ZONES = collections.OrderedDict(
     [
-        (zoneid(7, 1), {"desc": "dev", "env": ENVS["dev"]}),
-        (zoneid(7, 2), {"desc": "test", "env": ENVS["test"]}),
-        (zoneid(7, 3), {"desc": "pre", "env": ENVS["pre"]}),
-        (zoneid(7, 11), {"desc": "prod", "env": ENVS["prod"]}),
+        (zoneid(0, 1), {"desc": "dev", "env": ENVS["dev"]}),
+        (zoneid(0, 2), {"desc": "test", "env": ENVS["test"]}),
+        (zoneid(0, 3), {"desc": "pre", "env": ENVS["pre"]}),
+        (zoneid(0, 4), {"desc": "prod", "env": ENVS["prod"]}),
     ]
 )
 
