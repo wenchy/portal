@@ -4,36 +4,35 @@ import re
 class Perm(object):
     """
     A class to represent permissions for a specific environment, module, function, and opcodes.
-
-    Attributes:
-        env (str): The environment name.
-        module (str): The module name.
-        func (str): The function name.
-        opcodes (list[int | tuple]): A list of opcodes or ranges of opcodes.
     """
+
+    _env: str  # The environment name.
+    _module: str  # The module name.
+    _func: str  # The function name.
+    _opcodes: list[int | tuple[int, int]]  # A list of opcodes or ranges of opcodes.
 
     def __init__(
         self,
         env: str,
         module: str,
         func: str,
-        opcodes: list[int | tuple],
+        opcodes: list[int | tuple[int, int]],
     ):
-        self.env = env
-        self.module = module
-        self.func = func
-        self.opcodes = opcodes
+        self._env = env
+        self._module = module
+        self._func = func
+        self._opcodes = opcodes
 
     def check(self, env: str, module: str, func: str, opcode: int) -> bool:
-        if not re.match(self.env, env):
+        if not re.match(self._env, env):
             return False
-        elif not re.match(self.module, module):
+        elif not re.match(self._module, module):
             return False
-        elif not re.match(self.func, func):
+        elif not re.match(self._func, func):
             return False
         else:
             # Check if opcode is in the list of opcodes
-            for item in self.opcodes:
+            for item in self._opcodes:
                 if isinstance(item, int):
                     if opcode == item:
                         return True
@@ -47,8 +46,8 @@ class Perm(object):
 
     def __repr__(self):
         return (
-            f"Perm(env={self.env}, module={self.module}, func={self.func}, "
-            f"opcodes={self.opcodes})"
+            f"Perm(env={self._env}, module={self._module}, func={self._func}, "
+            f"opcodes={self._opcodes})"
         )
 
 

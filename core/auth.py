@@ -56,17 +56,17 @@ def auth_basic(handler):
 
 
 def auth_api(handler):
-    appid = handler.get_argument("appid", "")
-    log.debug("appid: " + appid)
-    if appid and appid in authconf.APIS:
-        appkey = authconf.APIS[appid]
-        signature = handler.get_argument("signature", "")
-        timestamp = handler.get_argument("timestamp", "")
-        encoded = hashlib.md5((appkey + timestamp).encode("utf-8")).hexdigest()
-        log.debug(f"encoded = {encoded} | signature = {signature}")
-        if encoded == signature:
-            return True, appid
-    return False, appid
+    appid = handler.get_argument("_appid", "")
+    if not appid:
+        return False, ""
+
+    sign = handler.get_argument("_sign", "")
+    ts = int(handler.get_argument("_ts", 0))
+    log.debug(f"appid: {appid}, sign: {sign}, ts: {ts}")
+    if authconf.USERS.authenticate_api(appid, sign, ts):
+        return True, appid
+    else:
+        return False, appid
 
 
 _AUTHS = collections.OrderedDict(

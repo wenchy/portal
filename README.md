@@ -154,11 +154,11 @@ A pluggable leveled authentication module:
 
 ## Authorization
 
-- [x] Authorization: role-based access control (RBAC)
+- [x] Authorization: RBAC (Role-Based Access Control)
 
 ## Configuration
 
-`config.py`: differernt environments' configurations.
+`config.py`: different environments' configurations.
 
 ## References
 
