@@ -2,6 +2,7 @@ import os
 import re
 import inspect
 import collections
+import types
 from core.logger import log
 
 
@@ -53,21 +54,10 @@ def is_file_argument(func: callable, arg_name: str) -> bool:
     return form["args"][arg_name]["input"] == "file"
 
 
-def get_module_by_name(module_name):
-    imported_module = __import__(name=module_name)
-    return imported_module
-
-
-def get_func_by_module(module):
-    methods = {}
-    for method in dir(module):
-        method = getattr(module, method)
-        if callable(method) and hasattr(method, "__html_form__"):
-            methods[method.__name__] = method
-    return methods
-
-
-def get_func_by_module_name(module_name):
-    imported_module = get_module_by_name(module_name)
-    methods = get_func_by_module(imported_module)
-    return methods
+def get_funcs_by_module(module: types.ModuleType) -> dict[str, callable]:
+    funcs: dict[str, callable] = {}
+    for func in dir(module):
+        func = getattr(module, func)
+        if callable(func) and hasattr(func, "__html_form__"):
+            funcs[func.__name__] = func
+    return funcs

@@ -128,8 +128,8 @@ $(document).ready(function () {
         var batchProcessConfirm = ""
         var batchProcessTip = ""
         if (isBatchProcess) {
-            batchProcessConfirm = '(batch processing)'
-            batchProcessTip = '<font color="PURPLE"><b>(batch processing)</b></font>'
+            batchProcessConfirm = '(batch)'
+            batchProcessTip = '<font color="red"><b>(batch)</b></font>'
             popup = "confirm"
         }
         switch (popup) {
@@ -141,11 +141,11 @@ $(document).ready(function () {
                 break;
 
             case "alert":
-                alert('Attention!\nYou will run action: ' + operationDesc + '！')
+                alert('Attention!\nYou will run action: ' + operationDesc + '!')
                 break;
 
             case "prompt":
-                let envName = prompt('Action：' + operationDesc + '\nPlease input environment name:', "")
+                let envName = prompt('Action: ' + operationDesc + '\nPlease input environment name:', "")
                 if (envName == null) {
                     console.log("user cancel prompt: " + operationDesc);
                     return false;

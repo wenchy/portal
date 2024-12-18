@@ -6,6 +6,7 @@ import time
 import collections
 from core import form
 from core.context import Context
+from . import kwargs  # for @form.onpage func/var injection and rendering
 
 
 # NOTE: Function Injection
@@ -262,19 +263,11 @@ def multi_checkbox(ctx: Context, boxes, boxes2: list[int]):
         "args": {
             "boxes": {
                 "input": "checkbox",
-                "options": {
-                   "1": "apple",
-                   "2": "banana",
-                   "3": "original"
-                }
+                "options": "$kwargs.FRUIT_DICT"
             },
             "boxes2": {
                 "input": "checkbox",
-                "options": {
-                   "10": "bee",
-                   "20": "dog",
-                   "30": "cat"
-                }
+                "options": "$kwargs.gen_pet_dict"
             }
         },
         "submit": 100
@@ -295,20 +288,12 @@ def selectpicker(ctx: Context, box: int, boxes2: list[int]):
         "args": {
             "box": {
                 "input": "selectpicker",
-                "options": {
-                   "1": "apple",
-                   "2": "banana",
-                   "3": "original"
-                }
+                "options": "$kwargs.FRUIT_DICT"
             },
             "boxes2": {
                 "input": "selectpicker",
                 "multiple": true,
-                "options": {
-                   "10": "bee",
-                   "20": "dog",
-                   "30": "cat"
-                }
+                "options": "$kwargs.gen_pet_dict"
             }
         },
         "submit": 100

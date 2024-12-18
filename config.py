@@ -75,7 +75,7 @@ VENVS = collections.OrderedDict(
                         {
                             "desc": "开发环境",
                             "path": "dev",
-                            "envs": ["dev"],
+                            "envs": ["dev", "test", "pre"],
                             "port": 8001,
                             "auth": "basic",
                             "alert": False,
