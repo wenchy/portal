@@ -206,16 +206,16 @@ def parse_html_form(func):
 
             # Evaluate dynamic values, pattern: "$VAR"
             for key, value in ordered_form["args"][arg_name].items():
-                log.debug("func:%s|key:%s|value:%s", func.__name__, key, value)
+                # log.debug("func:%s, key:%s, value:%s", func.__name__, key, value)
                 if isinstance(value, str) and value.startswith("$"):
                     retval = eval(value[1:], None, func.__globals__)
                     if callable(retval):
                         retval = retval()
                     ordered_form["args"][arg_name][key] = retval
+        form_str = json.dumps(ordered_form, indent=4)
+        log.debug(f"parsed form '{func.__name__}':\n{form_str}")
 
-        log.debug(json.dumps(ordered_form))
-
-    log.debug("%s, %s\n%s", func.__name__, str(type(func.__doc__)), func.__doc__)
+    log.debug(f"func '{func.__name__}' doc:\n{func.__doc__}")
 
     try:
         form = json.loads(func.__doc__, object_pairs_hook=collections.OrderedDict)

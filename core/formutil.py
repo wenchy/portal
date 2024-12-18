@@ -21,14 +21,14 @@ def get_ordered_funcs_by_module(module):
         func_dict[func[0]] = func[1]
     ordered_funcs = []
     func_pattern = re.compile(r"def *([\w]+)\(")
-    log.debug("filepath: " + module.__file__)
+    # log.debug("filepath: " + module.__file__)
     with open(os.path.splitext(module.__file__)[0] + ".py", "r") as file:
         func_names = func_pattern.findall(file.read())
         for func_name in func_names:
             # 剔除func_pattern匹配到的被注释掉的函数
             if func_name in func_dict:
                 ordered_funcs.append((func_name, func_dict[func_name]))
-    log.debug("ordered_funcs" + str(ordered_funcs))
+    # log.debug("ordered_funcs" + str(ordered_funcs))
     return ordered_funcs
 
 

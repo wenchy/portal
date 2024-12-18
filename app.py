@@ -143,7 +143,7 @@ def exec(handler: auth.BaseExecHandler, *args, **kwargs):
     uid = int(handler.get_argument("_uid", 0))
     opcode = int(handler.get_argument("_opcode", 0))
     zone_id = int(handler.get_argument("_zone"))
-    trace_id = handler.get_argument("trace_id", 0)
+    trace_id = int(handler.get_argument("_trace_id", 0))
 
     if not zone_id or zone_id not in config.DEPLOYED_ZONES:
         handler.write(f"not found zone: {zone_id}")
@@ -160,14 +160,15 @@ def exec(handler: auth.BaseExecHandler, *args, **kwargs):
         extras=extras,
     )
 
-    log.debug(f"ctx: {ctx.dump()}")
+    log.debug(f"ctx dump: {ctx.dump()}")
 
-    args = []
+    func_args = []
     for param in formutil.get_func_parameters(func):
+        # NOTE: The first param must be ctx.
         # log.debugCtx(ctx, f"param: {param}")
+        arg = None
         if formutil.is_file_argument(func, param.name):
             # assume as file if param name's suffix is '__file'
-            arg = None
             files = handler.request.files.get(param.name, None)
             if files:
                 arg = files[0]
@@ -189,30 +190,30 @@ def exec(handler: auth.BaseExecHandler, *args, **kwargs):
                     handler.finish()
                     return
 
-        args.append(arg)
+        func_args.append(arg)
 
-    uidlist = []
-    uidlist_str = handler.get_argument("_uids", None)
-    if uidlist_str:
-        uidlist = map(int, uidlist_str.splitlines())
+    uids: list[int] = []
+    batch_uids = handler.get_argument("_uids", None)
+    if batch_uids:
+        uids = map(int, batch_uids.splitlines())
     else:
-        uidlist.append(handler.get_argument("_uid", 0))
+        uids.append(uid)
 
-    ecode = None
-    for uid in uidlist:
-        ctx.uid = int(uid)
-        args[0] = ctx
+    for uid in uids:
+        if batch_uids:
+            # Separate each uid execution
+            handler.write(f"\n--- uid: {uid} ---\n")
 
-        fixed_args = []
-        for arg in args:
-            fixed_args.append(arg)
-        log.infoCtx(ctx, "fixed args: " + str(fixed_args))
+        ecode = None
+        ctx.uid = uid
+        func_args[0] = ctx
+        log.infoCtx(ctx, f"func '{handler.func}' args: {func_args}")
         # result formats:
         #   1. tuple: (ecode, [object...])
         #   2. form.File
         #   3. form.Editor
         #   4. other: just textualize it
-        result = func(*fixed_args)
+        result = func(*func_args)
         if isinstance(result, tuple):
             ecode = result[0]
             for item in result[1:]:
@@ -231,14 +232,15 @@ def exec(handler: auth.BaseExecHandler, *args, **kwargs):
             handler.write(util.textualize(result))
             ecode = 0
 
-    if ecode != None:
-        handler.write("\n\n")
-        if ecode == 0:
-            handler.write("🆗")
-        else:
-            text = "❌ " + util.get_ecode_details(ecode)
-            handler.write(util.html_font(text, color="red"))
-    handler.flush()  # Flushes the current output buffer to the network.
+        if ecode != None:
+            handler.write("\n\n")
+            if ecode == 0:
+                handler.write("🆗")
+            else:
+                text = "❌ " + util.get_ecode_details(ecode)
+                handler.write(util.html_font(text, color="red"))
+    # Flushes the current output buffer to the network.
+    handler.flush()
 
 
 def start_app(mode):

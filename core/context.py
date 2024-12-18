@@ -40,7 +40,7 @@ class Context(object):
         return self.__dict__.get(key)
 
     def __repr__(self):
-        return f"uid:{self.uid},zone_id:{self.zone_id},trace_id:{self.trace_id}"
+        return f"Context(uid:{self.uid},zone_id:{self.zone_id},trace_id:{self.trace_id})"
 
     def dump(self):
         return str(self.__dict__)
