@@ -53,13 +53,16 @@
                     <div class="navbar-form navbar-left">
                         <!--  <select class="form-control" name="SERVER_TYPE" id="env_id" onchange="OnClickSetEnvID(true)">
                         </select> -->
-                        <div class="form-group">
-                            <select class="form-control" name="environ-type" id="environ-type" onChange="updateType()">
-                                <option value="0" >IOS</option>
-                                <option value="1" selected="selected">Android</option>
-                                <option value="2" selected="selected">PC</option>
-                            </select>
+                        <div class="form-inline">
+                            <div class="form-group">
+                                <select class="form-control" name="environ-type" id="environ-type" onChange="updateType()">
+                                    <option value="0" >IOS</option>
+                                    <option value="1" selected="selected">Android</option>
+                                    <option value="2" selected="selected">PC</option>
+                                </select>
+                            </div>
 
+                            <div class="form-group">
                             {% if venv_name == 'idc' %}
                                <!--  too many envs, so allow user to input it -->
                                 <input list="zonelist" class="form-control" name="environ-zone" id="environ-zone" onChange="updateZone()" type="text"  placeholder="zoneid" value="0" data-toggle="tooltip" data-placement="bottom" title="zone ID">
@@ -76,9 +79,12 @@
                                     {% end %}
                                 </select>
                             {% end %}
+                            </div>
 
-                            <input list="uidlist" class="form-control" name="environ-uid" id="environ-uid" onChange="updateUID()" type="text"  placeholder="uid" value="0" data-toggle="tooltip" data-placement="bottom" title="uid">
-                            <datalist id="uidlist"></datalist>
+                            <div class="form-group">
+                                <input list="uidlist" class="form-control" name="environ-uid" id="environ-uid" onChange="updateUID()" type="text"  placeholder="uid" value="0" data-toggle="tooltip" data-placement="bottom" title="uid">
+                                <datalist id="uidlist"></datalist>
+                            </div>
                         </div>
                     </div>
                     <ul class="nav navbar-nav">
