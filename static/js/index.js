@@ -274,13 +274,13 @@ $(document).ready(function () {
     });
 
     var clickTimer;
-    function SetClickTimer($submit_btn, seconds) {
+    function setClickTimer($submit_btn, seconds) {
         clickTimer = setInterval(function () {
             $submit_btn.click()
         }, seconds * 1000);
     }
 
-    function ClearClickTimer(clickTimer) {
+    function clearClickTimer(clickTimer) {
         clearInterval(clickTimer);
     }
 
@@ -290,12 +290,12 @@ $(document).ready(function () {
             case 1:
                 // left click
                 console.log("left click")
-                ClearClickTimer(clickTimer);
+                clearClickTimer(clickTimer);
                 break;
             case 2:
                 // middle click
                 console.log("middle click")
-                SetClickTimer($(this), 2);
+                setClickTimer($(this), 2);
                 break;
             case 3:
                 // right click
@@ -383,7 +383,7 @@ function cookieSetInsert(cookiekey, element) {
         } else {
             array[array.length] = element;
         }
-        // cookie expire: 30天
+        // cookie expire: 30 days
         Cookies.set(cookiekey, array, { expires: 30, path: '/' });
         console.log(Cookies.get(cookiekey));
         updateUidDatalist()
