@@ -115,7 +115,7 @@ $(document).ready(function () {
             return;
         }
 
-        var isBatchProcess = $("#batchProcessForm #batchProcessCheck").is(':checked')
+        var isBatchProcess = $("#batch-process-form #batchProcessCheck").is(':checked')
         var popup = $(this).attr("popup");
         var title = $(this).parent().siblings(".panel-heading").children(".panel-title").text().trim();
         var operation = $(this).data('operation');
@@ -165,7 +165,7 @@ $(document).ready(function () {
         var httpMethod = $(this).attr("method");
 
         var lastResponseLen = false;
-        var $resultPanel = $("#commonResultPanel pre");
+        var $resultPanel = $("#common-result-panel pre");
         var $logPanel = $('#commonResultModal pre')
         let jsoneditor = null;
         let $jsoneditors = $(this).parents("div.tab-pane").find("div.jsoneditor");
@@ -185,7 +185,7 @@ $(document).ready(function () {
 
         if ($(this).attr("enctype") == "multipart/form-data" || isBatchProcess) {
             formData = new FormData(this);
-            var batch_data = $('#batchProcessForm').serializeArray();
+            var batch_data = $('#batch-process-form').serializeArray();
             $.each(batch_data, function (key, input) {
                 formData.append(input.name, input.value);
             });
@@ -214,7 +214,7 @@ $(document).ready(function () {
             processData: ajaxProcessData,
             beforeSend: function (jqXHR, settings) {
                 // Show loading img
-                $("#commonResultPanel img").show();
+                $("#common-result-panel img").show();
                 // Firstly clear
                 $resultPanel.text("");
                 $resultPanel.append("<strong>Action" + batchProcessTip + ": " + operationDesc + "</strong>\n\n");
@@ -242,9 +242,9 @@ $(document).ready(function () {
             },
             complete: function (jqXHR, textStatus) {
                 // Hide loading img
-                $("#commonResultPanel img").hide();
+                $("#common-result-panel img").hide();
                 // Scroll down to bottom for showing the result status.
-                $resultPanel.scrollTop($('div#commonResultPanel pre')[0].scrollHeight);
+                $resultPanel.scrollTop($('div#common-result-panel pre')[0].scrollHeight);
 
                 // prepend to log panel
                 // remove first title line to avoid duplicating (e.g.: Action: XXX)
@@ -266,7 +266,7 @@ $(document).ready(function () {
                         lastResponseLen = response.length;
                     }
                     $resultPanel.append(thisResponse);
-                    $resultPanel.scrollTop($('div#commonResultPanel pre')[0].scrollHeight);
+                    $resultPanel.scrollTop($('div#common-result-panel pre')[0].scrollHeight);
                 }
             }
         });
@@ -330,19 +330,24 @@ $(document).ready(function () {
     });
 
     $("#resize-result-panel").click(function () {
-        if ($("#commonResultMsg").width() != "300") {
-            $("#commonResultMsg").width("300px");
-            $("#commonResultMsg pre").width("290px");
-
-            $("#commonResultMsg").height("240px");
-            $("#commonResultMsg pre").height("240px");
-
+        if ($("#common-result-msg").width() != "300") {
+            $("#common-result-msg").css({
+                'width': '300px',
+                'height': '240px'
+            });
+            $("#common-result-msg pre").css({
+                'width': '290px',
+                'height': '240px'
+            });
         } else {
-            $("#commonResultMsg").width("900px");
-            $("#commonResultMsg pre").width("890px");
-
-            $("#commonResultMsg").height("500px");
-            $("#commonResultMsg pre").height("500px");
+             $("#common-result-msg").css({
+                'width': '900px',
+                'height': '500px'
+            });
+            $("#common-result-msg pre").css({
+                'width': '890px',
+                'height': '500px'
+            });
         }
     });
 });

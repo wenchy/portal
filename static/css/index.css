@@ -12,6 +12,22 @@ body {
     padding-top: 70px;
 }
 
+/* Adjust padding based on navbar height */
+@media (max-width: 1200px) {
+    body {
+        padding-top: 120px;
+        /* Increase padding for middle screens */
+    }
+}
+
+/* Adjust padding based on navbar height */
+@media (max-width: 770px) {
+    body {
+        padding-top: 70px;
+        /* Decrease padding for smaller screens */
+    }
+}
+
 footer {
     padding: 30px 0;
 }
@@ -123,7 +139,7 @@ body {
         sans-serif !important;
 }
 
-/*#main_container {
+/*#main-container {
     margin-top: 70px !important;
 }*/
 
@@ -141,12 +157,12 @@ body {
     font-size: 16px;
 }
 
-#main_container .nav-pills li {
+#main-container .nav-pills li {
     border-bottom: 1px solid #ccc;
     margin-top: 0px;
 }
 
-#main_container .nav {
+#main-container .nav {
     border: 1px solid rgba(4, 18, 27, 0.88);
 }
 
@@ -184,7 +200,7 @@ textarea {
 }
 
 /* batch pannel */
-#BatchPanel {
+#batch-panel {
     z-index: 1000;
     right: 2px;
     top: 70px;
@@ -193,7 +209,7 @@ textarea {
 }
 
 /* common result pannel */
-#commonResultPanel {
+#common-result-panel {
     z-index: 1000;
     right: 2px;
     bottom: 2px;
@@ -203,7 +219,7 @@ textarea {
     border: 1px solid #666;
 }
 
-#commonResultPanel>.panel-footer {
+#common-result-panel>.panel-footer {
     color: #fff;
     /* background-color: #3b4045; */
     background-color: #111e2c;
@@ -212,7 +228,7 @@ textarea {
     border-top: 1px solid #e6e9ec;
 }
 
-div#commonResultMsg {
+div#common-result-msg {
     font-size: 12px !important;
     width: 300px;
     height: 240px;
@@ -220,7 +236,7 @@ div#commonResultMsg {
     border: 0 !important;
 }
 
-div#commonResultMsg pre {
+div#common-result-msg pre {
     font-size: 12px !important;
     overflow: auto;
     width: 300px;
@@ -243,6 +259,10 @@ div.item>.panel-danger>.panel-heading {
     color: #ffffff;
     background-color: #b95555;
     border-color: #b95555;
+}
+
+#environ-type {
+    max-width: 100px;
 }
 
 #environ-uid {
@@ -271,7 +291,7 @@ div.info-tip {
     height: 660px;
 }
 
-.form_group_margin {
+.form-group-margin {
     margin-right: -13px !important;
     margin-left: -13px !important;
 }
