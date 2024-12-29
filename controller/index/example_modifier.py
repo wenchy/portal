@@ -234,7 +234,7 @@ def upload(ctx: Context, file: form.File):
 @form.onpage
 def simple(ctx: Context):
     """Simple"""
-    return "A simple form on page"
+    return "A simple form with func doc as title, but not in JSON format"
 
 
 @form.onpage
