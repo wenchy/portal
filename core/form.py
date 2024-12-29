@@ -223,11 +223,14 @@ def parse_html_form(func):
     except Exception as e:
         log.warning("exception: %s\n%s", str(e), traceback.format_exc())
         log.debug(
-            f"failed to decode docstring as JSON, then just treat it as title: {func.__name__}"
+            f"failed to decode func {func.__name__} doc by JSON, then just treat it as title"
         )
 
         if func.__doc__:
             ordered_form["title"] = func.__doc__
+
+        if "submit" not in ordered_form:
+            ordered_form["submit"] = 0  # default
 
         # Required: desc, input, and default
         for arg_name, default in args.items():
