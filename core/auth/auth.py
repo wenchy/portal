@@ -14,16 +14,21 @@ __ANONY = User("anonym", "", [GUEST])
 
 
 def anonym(handler: tornado.web.RequestHandler) -> tuple[bool, str, User]:
+    """Anoymous authentication."""
     return True, __ANONY.username(), __ANONY
 
 
-# returns True is basic auth provided, otherwise it sends back a 401
-# status code and requests user input their credentials.
-#
-# todo: write logic or pass in a function so that it can determine
-# whether the authentication is accepted (e.g. you find the credentials
-# within an external database).
 def basic(handler: tornado.web.RequestHandler) -> tuple[bool, str, User]:
+    """HTTP basic authentication.
+
+    It returns ok if basic auth provided and validated, otherwise it
+    sends back a 401 status code and requests user input their credentials.
+
+    NOTE: write logic or pass in a function so that it can determine
+    whether the authentication is accepted (e.g. you find the credentials
+    within an external database).
+    """
+
     def _unauthorized():
         handler.set_status(HTTPStatus.UNAUTHORIZED)
         handler.set_header("WWW-Authenticate", "Basic realm=Restricted")  # noqa
@@ -57,6 +62,7 @@ def basic(handler: tornado.web.RequestHandler) -> tuple[bool, str, User]:
 
 
 def api(handler: tornado.web.RequestHandler) -> tuple[bool, str, User]:
+    """API token authentication."""
     appid = handler.get_argument("_appid", "")
     if not appid:
         return False, "", None

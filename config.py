@@ -63,7 +63,7 @@ for name, value in ENVS.items():
 
 # 部署环境配置: Virtual ENVironmentS
 # 此命名原因: 一个venv映射多个env, 以利于弹性部署
-# 部署目录: user00用户home目录下的`~/tornado`
+# 部署目录: ~/tornado
 VENVS = collections.OrderedDict(
     [
         (

@@ -20,10 +20,10 @@ Optional:
 
 ## Design: Python -> HTML mapping
 
-| Python                                                                                      | HTML                                                                                                                                                                                                                                                   |
-| ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [module](https://docs.python.org/3/tutorial/modules.html)                                   | [tab](https://getbootstrap.com/docs/3.4/components/#nav-tabs)                                                                                                                                                                                          |
-| [function](https://docs.python.org/3/tutorial/controlflow.html#defining-functions)          | [form](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form)                                                                                                                                                                                 |
+| Python                                                                                      | HTML                                                                                                                                                                                                                                                                   |
+| ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [module](https://docs.python.org/3/tutorial/modules.html)                                   | [tab](https://getbootstrap.com/docs/3.4/components/#nav-tabs)                                                                                                                                                                                                          |
+| [function](https://docs.python.org/3/tutorial/controlflow.html#defining-functions)          | [form](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form)                                                                                                                                                                                                 |
 | [arguments](https://docs.python.org/3/tutorial/controlflow.html#more-on-defining-functions) | [input](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input) <br> [textarea](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea) <br> [select](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select) <br> datetime <br> editor |
 
 ## Nginx reverse proxy
@@ -143,13 +143,14 @@ Keep-alive and HTTP connection pooling are 100% automatic, thanks to urllib3.
 
 ## Authentication
 
-A pluggable leveled authentication module:
+A pluggable pluggable N-level authentication module ordered by priority:
 ```python
- auths = collections.OrderedDict([
-        ('api',    {'handler': auth_api,    'level': 3}), # API token
-        ('basic',  {'handler': auth_basic,  'level': 2}), # HTTP basic
-        ('anonym', {'handler': auth_anonym, 'level': 1}), # anoymous
-    ])
+AUTHS = [
+    auth.anonym, # Anoymous
+    auth.basic, # HTTP basic
+    auth.api,  # API token
+    # more: auth.xxx
+]
 ```
 
 ## Authorization
@@ -158,7 +159,9 @@ A pluggable leveled authentication module:
 
 ## Configuration
 
-`config.py`: different environments' configurations.
+- `config.py`: different environments' configurations.
+- `authconf.py`: pluggable N-level authentication module ordered by priority.
+- `userconf.py`: user account config with RBAC (Role-Based Access Control), support both local and remote auth.
 
 ## References
 

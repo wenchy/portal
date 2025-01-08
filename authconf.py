@@ -8,8 +8,8 @@ The auth module will authenticate from high to low priority until it passes.
 from core.auth import auth
 
 AUTHS = [
-    auth.anonym,
-    auth.basic,
-    auth.api,
+    auth.anonym,  # Anoymous
+    auth.basic,  # HTTP basic
+    auth.api,  # API token
     # more: auth.xxx
 ]
