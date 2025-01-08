@@ -1,12 +1,15 @@
-import collections
+"""
+A pluggable N-level authentication module ordered by priority.
+
+More bigger the list index, then more higher the priority.
+The auth module will authenticate from high to low priority until it passes.
+"""
+
 from core.auth import auth
 
-# A pluggable N-level authentication module.
-AUTHS = collections.OrderedDict(
-    [
-        # ("xx", {"handler": auth.xxx, "level": 4}),
-        ("api", {"handler": auth.api, "level": 3}),
-        ("basic", {"handler": auth.basic, "level": 2}),
-        ("anonym", {"handler": auth.anonym, "level": 1}),
-    ]
-)
+AUTHS = [
+    auth.anonym,
+    auth.basic,
+    auth.api,
+    # more: auth.xxx
+]

@@ -26,14 +26,17 @@ class BaseHandler(tornado.web.RequestHandler):
 
         real_auth_type = self.auth_type
         ok, username = False, None
-        # NOTE: auths是OrderedDict
-        # 描述: 按照level从高到低一个个尝试鉴权，如果成功就break，直到level等于设置的最低鉴权类型对应level
-        # 目的: 保证高level权限的用户可以pass低level的鉴权类型
-        for _auth_type, _auth_item in authconf.AUTHS.items():
-            if _auth_item["level"] >= authconf.AUTHS[self.auth_type]["level"]:
-                ok, username = _auth_item["handler"](self)
+
+        # Authenticate from high to low priority until it passes.
+        need_check = False
+        for i, auth_func in enumerate(reversed(authconf.AUTHS)):
+            auth_type = auth_func.__name__
+            if auth_type == self.auth_type:
+                need_check = True
+            if need_check:
+                ok, username = auth_func(self)
                 if ok:
-                    real_auth_type = _auth_type
+                    real_auth_type = auth_type
                     break
 
         # remember for later use
