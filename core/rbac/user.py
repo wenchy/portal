@@ -2,6 +2,7 @@ from .role import *
 import collections
 import hashlib
 import datetime
+from abc import ABC, abstractmethod
 
 
 def gen_sign(appid: str, appkey: str, ts: int) -> str:
@@ -45,29 +46,54 @@ class User(object):
         return f"User(username={self._username}, password={self._password}, roles={self._roles})"
 
 
+class BaseExternalUsers(ABC):
+    """
+    Base abstract class for implementing external or remote users manager.
+
+    You can define a subclass and cache remote users in memory for high performance.
+    """
+
+    @abstractmethod
+    def get(self, username: str) -> User:
+        """
+        Get a full User object by username for auth.
+        """
+        pass
+
+
 class Users(object):
     _users: collections.OrderedDict[str, User]
+    _external_users: BaseExternalUsers
 
-    def __init__(self):
+    def __init__(self, external_users: BaseExternalUsers = None):
         self._users = collections.OrderedDict[str, User]()
+        self._external_users = external_users
 
     def add(self, username: str, password: str, roles: list[Role]):
+        """Add a local user."""
         self._users[username] = User(username, password, roles)
 
     def add_user(self, user: User):
+        """Add a local user."""
         self._users[user._username] = user
 
     def get(self, username: str) -> User:
-        return self._users.get(username, None)
+        """
+        Firstly, find the user locally. If not found, then find from external users if provided.
+        """
+        user = self._users.get(username, None)
+        if user:
+            return user
+        return self._external_users.get(user)
 
     def authenticate(self, username: str, password: str) -> bool:
-        user = self._users.get(username, None)
+        user = self.get(username)
         if user:
             return user.authenticate(password)
         return False
 
     def authenticate_api(self, appid: str, sign: str, ts: int) -> bool:
-        user = self._users.get(appid, None)
+        user = self.get(appid)
         if user:
             return user.authenticate_api(sign, ts)
         return False
@@ -75,7 +101,7 @@ class Users(object):
     def authorize(
         self, username: str, env: str, module: str, func: str, opcode: int
     ) -> bool:
-        user = self._users.get(username, None)
+        user = self.get(username)
         if user:
             return user.authorize(env, module, func, opcode)
         return False

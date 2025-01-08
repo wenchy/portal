@@ -29,20 +29,20 @@ import tornado.web
 
 from core.logger import log
 from core import context
-from core import auth
+from core.auth import handler
 from core import util
 from core import formmgr
 from core import form
 from core import formutil
 from core.timespan import Timespan
 import config
-import authconf
+import userconf
 
 sys.path.append("common")
 sys.path.append("common/protocol")
 
 
-class ControllerList(auth.BaseListHandler):
+class ControllerList(handler.BaseListHandler):
 
     def post(self, *args, **kwargs):
         param_type = self.get_argument("type", "")
@@ -81,14 +81,14 @@ class ControllerList(auth.BaseListHandler):
             return
         modules = formmgr.ALL_PACKAGES[pkg_fullname].modules
         tabs = collections.OrderedDict()
-        user = authconf.USERS.get(self.username)
+        user = userconf.USERS.get(self.username)
         for module in modules:
             # name pattern of python module is: A.B.C, convert it to A-B-C
             # to comply with HTML name pattern
             tab_name = module.__name__.replace(".", "-")
             forms = formutil.get_forms_by_module(module)
             # generate auth forms
-            auth_forms = auth.gen_auth_forms(user, self.env, module.__name__, forms)
+            auth_forms = handler.gen_auth_forms(user, self.env, module.__name__, forms)
             tabs[tab_name] = {
                 "module_name": module.__name__,
                 "desc": module.__doc__,
@@ -113,7 +113,7 @@ class ControllerList(auth.BaseListHandler):
     get = post
 
 
-class ControllerExec(auth.BaseExecHandler):
+class ControllerExec(handler.BaseExecHandler):
     def post(self, *args, **kwargs):
         with Timespan(
             lambda duration: log.debug(
@@ -129,7 +129,7 @@ class ControllerExec(auth.BaseExecHandler):
     get = post
 
 
-def exec(handler: auth.BaseExecHandler, *args, **kwargs):
+def exec(handler: handler.BaseExecHandler, *args, **kwargs):
     # Find the corresponding Python function object.
     #
     # Split a module name at the last occurrence of a dot (.) into two parts,

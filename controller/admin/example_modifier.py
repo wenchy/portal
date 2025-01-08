@@ -4,7 +4,7 @@ __priority__ = 1
 
 from core import form
 from core.context import Context
-import authconf
+import userconf
 
 
 @form.onpage
@@ -15,4 +15,4 @@ def query_users(ctx: Context):
         "submit": 999
     }
     """
-    return authconf.USERS
+    return userconf.USERS

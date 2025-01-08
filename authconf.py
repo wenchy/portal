@@ -1,11 +1,12 @@
-from core.rbac.role import *
-from core.rbac.user import *
+import collections
+from core.auth import auth
 
-USERS = Users()
-# API: sign = md5(f"_appid={appid}&_appkey={appkey}&_ts={ts}")
-USERS.add("appid", "appkey", [STAFF])
-# users
-USERS.add("guest", "guestpw", [GUEST])
-USERS.add("staff", "staffpw", [STAFF])
-USERS.add("dev", "devpw", [GUEST, STAFF])
-USERS.add("admin", "adminpw", [ADMIN])
+# A pluggable N-level authentication module.
+AUTHS = collections.OrderedDict(
+    [
+        # ("xx", {"handler": auth.xxx, "level": 4}),
+        ("api", {"handler": auth.api, "level": 3}),
+        ("basic", {"handler": auth.basic, "level": 2}),
+        ("anonym", {"handler": auth.anonym, "level": 1}),
+    ]
+)

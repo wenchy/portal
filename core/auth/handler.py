@@ -1,81 +1,14 @@
 """
-A pluggable N-level authentication module.
+Basic authentication and authorization handlers.
 """
 
-import base64
-import collections
-import hashlib
 from http import HTTPStatus
 import tornado
 import config
+import userconf
 import authconf
-from .logger import log
-from .rbac.user import User
-
-
-def auth_anonym(handler):
-    return True, "Anonym"
-
-
-# returns True is basic auth provided, otherwise it sends back a 401
-# status code and requests user input their credentials.
-#
-# todo: write logic or pass in a function so that it can determine
-# whether the authentication is accepted (e.g. you find the credentials
-# within an external database).
-def auth_basic(handler):
-    def _unauthorized():
-        handler.set_status(HTTPStatus.UNAUTHORIZED)
-        handler.set_header("WWW-Authenticate", "Basic realm=Restricted")  # noqa
-        return False
-
-    auth_header = handler.request.headers.get("Authorization")
-    if auth_header is None or not auth_header.startswith("Basic "):
-        # If the browser didn't send us authorization headers,
-        # send back a response letting it know that we'd like
-        # a username and password (the "Basic" authentication
-        # method).  Without this, even if your visitor puts a
-        # username and password in the URL, the browser won't
-        # send it.  The "realm" option in the header is the
-        # name that appears in the dialog that pops up in your
-        # browser.
-        return _unauthorized(), None
-
-    # The information that the browser sends us is
-    # base64-encoded, and in the format "username:password".
-    # Keep in mind that either username or password could
-    # still be unset, and that you should check to make sure
-    # they reflect valid credentials!
-    auth_decoded = base64.decodebytes(bytes(auth_header[6:], "utf-8"))
-    username, password = auth_decoded.decode("utf-8").split(":", 2)
-
-    if authconf.USERS.authenticate(username, password):
-        return True, username
-    else:
-        return _unauthorized(), username
-
-
-def auth_api(handler):
-    appid = handler.get_argument("_appid", "")
-    if not appid:
-        return False, ""
-
-    sign = handler.get_argument("_sign", "")
-    ts = int(handler.get_argument("_ts", 0))
-    log.debug(f"appid: {appid}, sign: {sign}, ts: {ts}")
-    if authconf.USERS.authenticate_api(appid, sign, ts):
-        return True, appid
-    else:
-        return False, appid
-
-
-_AUTHS = collections.OrderedDict(
-    [
-        ("api", {"handler": auth_api, "level": 3}),
-        ("basic", {"handler": auth_basic, "level": 2}),
-        ("anonym", {"handler": auth_anonym, "level": 1}),
-    ]
-)
+from ..logger import log
+from ..rbac.user import User
 
 
 class BaseHandler(tornado.web.RequestHandler):
@@ -96,8 +29,8 @@ class BaseHandler(tornado.web.RequestHandler):
         # NOTE: auths是OrderedDict
         # 描述: 按照level从高到低一个个尝试鉴权，如果成功就break，直到level等于设置的最低鉴权类型对应level
         # 目的: 保证高level权限的用户可以pass低level的鉴权类型
-        for _auth_type, _auth_item in _AUTHS.items():
-            if _auth_item["level"] >= _AUTHS[self.auth_type]["level"]:
+        for _auth_type, _auth_item in authconf.AUTHS.items():
+            if _auth_item["level"] >= authconf.AUTHS[self.auth_type]["level"]:
                 ok, username = _auth_item["handler"](self)
                 if ok:
                     real_auth_type = _auth_type
@@ -152,7 +85,7 @@ class BaseExecHandler(BaseHandler):
         # NOTE: depending "self.username" filled by authentication
         access_detail = f"username: {self.username}, env: {self.env}, module: {self.module}, func: {self.func}, opcode: {self.opcode}"
 
-        ok = authconf.USERS.authorize(
+        ok = userconf.USERS.authorize(
             self.username, self.env, self.module, self.func, self.opcode
         )
         if ok:
@@ -196,7 +129,3 @@ def gen_auth_forms(user: User, env_name: str, module_name: str, forms: dict) -> 
         auth_forms[func_name] = {"opcodes": opcodes}
 
     return auth_forms
-
-
-if __name__ == "__main__":
-    pass
