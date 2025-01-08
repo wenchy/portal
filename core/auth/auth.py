@@ -6,11 +6,15 @@ import base64
 from http import HTTPStatus
 import tornado
 import userconf
+from ..rbac.user import User
+from core.rbac.role import GUEST
 from ..logger import log
 
+__ANONY = User("anonym", "", [GUEST])
 
-def anonym(handler: tornado.web.RequestHandler):
-    return True, "Anonym"
+
+def anonym(handler: tornado.web.RequestHandler) -> tuple[bool, str, User]:
+    return True, __ANONY.username(), __ANONY
 
 
 # returns True is basic auth provided, otherwise it sends back a 401
@@ -19,7 +23,7 @@ def anonym(handler: tornado.web.RequestHandler):
 # todo: write logic or pass in a function so that it can determine
 # whether the authentication is accepted (e.g. you find the credentials
 # within an external database).
-def basic(handler: tornado.web.RequestHandler):
+def basic(handler: tornado.web.RequestHandler) -> tuple[bool, str, User]:
     def _unauthorized():
         handler.set_status(HTTPStatus.UNAUTHORIZED)
         handler.set_header("WWW-Authenticate", "Basic realm=Restricted")  # noqa
@@ -35,7 +39,7 @@ def basic(handler: tornado.web.RequestHandler):
         # send it.  The "realm" option in the header is the
         # name that appears in the dialog that pops up in your
         # browser.
-        return _unauthorized(), None
+        return _unauthorized(), "", None
 
     # The information that the browser sends us is
     # base64-encoded, and in the format "username:password".
@@ -45,21 +49,23 @@ def basic(handler: tornado.web.RequestHandler):
     auth_decoded = base64.decodebytes(bytes(auth_header[6:], "utf-8"))
     username, password = auth_decoded.decode("utf-8").split(":", 2)
     log.debug(f"username: {username}, password: {password}")
-    if userconf.USERS.authenticate(username, password):
-        return True, username
+    ok, user = userconf.USERS.authenticate(username, password)
+    if ok:
+        return True, username, user
     else:
-        return _unauthorized(), username
+        return _unauthorized(), username, None
 
 
-def api(handler: tornado.web.RequestHandler):
+def api(handler: tornado.web.RequestHandler) -> tuple[bool, str, User]:
     appid = handler.get_argument("_appid", "")
     if not appid:
-        return False, ""
+        return False, "", None
 
     sign = handler.get_argument("_sign", "")
     ts = int(handler.get_argument("_ts", 0))
     log.debug(f"appid: {appid}, sign: {sign}, ts: {ts}")
-    if userconf.USERS.authenticate_api(appid, sign, ts):
-        return True, appid
+    ok, user = userconf.USERS.authenticate_api(appid, sign, ts)
+    if ok:
+        return True, appid, user
     else:
-        return False, appid
+        return False, appid, None

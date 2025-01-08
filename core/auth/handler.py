@@ -12,6 +12,9 @@ from ..rbac.user import User
 
 
 class BaseHandler(tornado.web.RequestHandler):
+    username: str
+    user: User
+    auth_type: str
 
     def _authenticate(self) -> bool:
         # for name, value in self.request.headers.get_all():
@@ -19,31 +22,29 @@ class BaseHandler(tornado.web.RequestHandler):
 
         # prepare common data members
         self.auth_type = config.DEPLOYED_VENV["auth"]
-        self.username = None  # To be filled by authentication
+        real_auth_type = self.auth_type
 
         # treat VENV as env for checking permissions
         self.env: str = config.VENV_NAME
 
-        real_auth_type = self.auth_type
-        ok, username = False, None
-
         # Authenticate from high to low priority until it passes.
+        ok = False
         need_check = False
-        for i, auth_func in enumerate(reversed(authconf.AUTHS)):
+        for auth_func in reversed(authconf.AUTHS):
             auth_type = auth_func.__name__
             if auth_type == self.auth_type:
                 need_check = True
             if need_check:
-                ok, username = auth_func(self)
+                ok, username, user = auth_func(self)
                 if ok:
                     real_auth_type = auth_type
+                    # remember for later use
+                    self.username = username
+                    self.user = user
+                    self.auth_type = auth_type
                     break
 
-        # remember for later use
-        self.username = username
-        self.auth_type = real_auth_type
-
-        access_detail = f"username: {username}, specified auth: {self.auth_type}, real auth: {real_auth_type}, arguments: {self.request.arguments}"
+        access_detail = f"username: {self.username}, specified auth: {self.auth_type}, real auth: {real_auth_type}, arguments: {self.request.arguments}"
         if ok:
             log.debug(f"authenticate succeeded, " + access_detail)
             return True
@@ -67,6 +68,34 @@ class BaseHandler(tornado.web.RequestHandler):
 class BaseListHandler(BaseHandler):
     def prepare(self):
         self._authenticate()
+
+    def gen_auth_forms(self, module_name: str, forms: dict) -> dict:
+        """generate auth forms for disabling unauthorized opcodes"""
+
+        def authorize_opcode(opcodes: dict[int, str], opcode: int):
+            # comment out for test
+            # opcodes[opcode] = ""
+            if self.user.authorize(self.env, module_name, func_name, opcode):
+                opcodes[opcode] = ""
+            else:
+                opcodes[opcode] = "disabled"
+
+        auth_forms = {}
+        for func_name, form in forms.items():
+            opcodes = {}
+            if "submit" in form:
+                if type(form["submit"]) == int:
+                    opcode = form["submit"]
+                    authorize_opcode(opcodes, opcode)
+                else:
+                    for opcode in form["submit"]["opcodes"].keys():
+                        authorize_opcode(opcodes, int(opcode))
+            else:
+                opcode = 0  # default opcode is 0
+                authorize_opcode(opcodes, opcode)
+            auth_forms[func_name] = {"opcodes": opcodes}
+
+        return auth_forms
 
 
 class BaseExecHandler(BaseHandler):
@@ -103,32 +132,3 @@ class BaseExecHandler(BaseHandler):
             )
             self.finish()
             return False
-
-
-def gen_auth_forms(user: User, env_name: str, module_name: str, forms: dict) -> dict:
-    """generate auth forms for disabling unauthorized opcodes"""
-
-    def authorize_opcode(opcodes: dict[int, str], opcode: int):
-        # comment out for test
-        # opcodes[opcode] = ""
-        if user.authorize(env_name, module_name, func_name, opcode):
-            opcodes[opcode] = ""
-        else:
-            opcodes[opcode] = "disabled"
-
-    auth_forms = {}
-    for func_name, form in forms.items():
-        opcodes = {}
-        if "submit" in form:
-            if type(form["submit"]) == int:
-                opcode = form["submit"]
-                authorize_opcode(opcodes, opcode)
-            else:
-                for opcode in form["submit"]["opcodes"].keys():
-                    authorize_opcode(opcodes, int(opcode))
-        else:
-            opcode = 0  # default opcode is 0
-            authorize_opcode(opcodes, opcode)
-        auth_forms[func_name] = {"opcodes": opcodes}
-
-    return auth_forms

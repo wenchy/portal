@@ -36,7 +36,6 @@ from core import form
 from core import formutil
 from core.timespan import Timespan
 import config
-import userconf
 
 sys.path.append("common")
 sys.path.append("common/protocol")
@@ -81,14 +80,13 @@ class ControllerList(handler.BaseListHandler):
             return
         modules = formmgr.ALL_PACKAGES[pkg_fullname].modules
         tabs = collections.OrderedDict()
-        user = userconf.USERS.get(self.username)
         for module in modules:
             # name pattern of python module is: A.B.C, convert it to A-B-C
             # to comply with HTML name pattern
             tab_name = module.__name__.replace(".", "-")
             forms = formutil.get_forms_by_module(module)
             # generate auth forms
-            auth_forms = handler.gen_auth_forms(user, self.env, module.__name__, forms)
+            auth_forms = self.gen_auth_forms(module.__name__, forms)
             tabs[tab_name] = {
                 "module_name": module.__name__,
                 "desc": module.__doc__,

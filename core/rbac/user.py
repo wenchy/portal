@@ -20,6 +20,9 @@ class User(object):
         self._password = password
         self._roles = roles
 
+    def username(self) -> str:
+        return self._username
+
     def authenticate(self, password: str) -> bool:
         return self._password == password
 
@@ -84,19 +87,21 @@ class Users(object):
         user = self._users.get(username, None)
         if user:
             return user
-        return self._external_users.get(user)
+        if self._external_users:
+            return self._external_users.get(user)
+        return None
 
-    def authenticate(self, username: str, password: str) -> bool:
+    def authenticate(self, username: str, password: str) -> tuple[bool, User]:
         user = self.get(username)
         if user:
-            return user.authenticate(password)
-        return False
+            return user.authenticate(password), user
+        return False, None
 
-    def authenticate_api(self, appid: str, sign: str, ts: int) -> bool:
+    def authenticate_api(self, appid: str, sign: str, ts: int) -> tuple[bool, User]:
         user = self.get(appid)
         if user:
-            return user.authenticate_api(sign, ts)
-        return False
+            return user.authenticate_api(sign, ts), user
+        return False, None
 
     def authorize(
         self, username: str, env: str, module: str, func: str, opcode: int

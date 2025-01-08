@@ -12,7 +12,8 @@ class ExternalUsers(BaseExternalUsers):
         return User(username, "", [ADMIN])
 
 
-USERS = Users(ExternalUsers())
+# USERS = Users(ExternalUsers())
+USERS = Users()
 # API: sign = md5(f"_appid={appid}&_appkey={appkey}&_ts={ts}")
 USERS.add("appid", "appkey", [STAFF])
 # users
