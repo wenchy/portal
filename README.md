@@ -54,6 +54,7 @@ location ^~ /dev/ {
 Run: `python3 app.py`
 
 Run as **daemon**:
+
 | Action  | Command                  | Mode                              |
 | ------- | ------------------------ | --------------------------------- |
 | start   | `./startstop.sh start`   | `singleprocess` or `multiprocess` |
@@ -146,12 +147,14 @@ Keep-alive and HTTP connection pooling are 100% automatic, thanks to urllib3.
 A pluggable pluggable N-level authentication module ordered by priority:
 ```python
 AUTHS = [
-    auth.anonym, # Anoymous
-    auth.basic, # HTTP basic
-    auth.api,  # API token
+    auth.Anonym("anonym"),  # Anoymous
+    auth.Basic("basic"),  # HTTP basic
+    auth.API("api"),  # API token
     # more: auth.xxx
 ]
 ```
+
+NOTE: You can extend more authentications by subclassing `BaseAuth`.
 
 ## Authorization
 
