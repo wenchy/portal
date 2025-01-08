@@ -30,12 +30,12 @@ class BaseHandler(tornado.web.RequestHandler):
         # Authenticate from high to low priority until it passes.
         ok = False
         need_check = False
-        for auth_func in reversed(authconf.AUTHS):
-            auth_type = auth_func.__name__
+        for auth in reversed(authconf.AUTHS):
+            auth_type = auth.name
             if auth_type == self.auth_type:
                 need_check = True
             if need_check:
-                ok, username, user = auth_func(self)
+                ok, username, user = auth.authenticate(self)
                 if ok:
                     real_auth_type = auth_type
                     # remember for later use

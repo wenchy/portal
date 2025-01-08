@@ -7,9 +7,9 @@ The auth module will authenticate from high to low priority until it passes.
 
 from core.auth import auth
 
-AUTHS = [
-    auth.anonym,  # Anoymous
-    auth.basic,  # HTTP basic
-    auth.api,  # API token
+AUTHS: list[auth.BaseAuth] = [
+    auth.Anonym("anonym"),  # Anoymous
+    auth.Basic("basic"),  # HTTP basic
+    auth.API("api"),  # API token
     # more: auth.xxx
 ]
