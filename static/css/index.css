@@ -6,6 +6,8 @@ html,
 body {
     overflow-x: hidden;
     /* Prevent scroll on narrow devices */
+    height: 100vh;
+    /* Full height for the body */
 }
 
 body {
@@ -137,6 +139,10 @@ body {
     font-family: "Helvetica Neue", "Helvetica", "Tahoma", "Arial",
         "Microsoft Yahei", "微软雅黑", "Hiragino Sans GB", "PingFang SC", STHeiTi,
         sans-serif !important;
+}
+
+#menu-container>.navbar-fixed-top {
+    z-index: 9999;
 }
 
 /*#main-container {

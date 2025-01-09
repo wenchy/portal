@@ -32,8 +32,7 @@ $(document).ready(function () {
     let $container = $('.masonry-container');
     // Reinitialize masonry inside each panel after the relative tab link is clicked
     $('a[data-toggle=tab]').each(function () {
-        var $this = $(this);
-        $this.on('shown.bs.tab', function () {
+        $(this).on('shown.bs.tab', function () {
             $container.imagesLoaded(function () {
                 $container.masonry({
                     columnWidth: '.item',
@@ -42,8 +41,8 @@ $(document).ready(function () {
                     horizontalOrder: true,
                 });
             });
-        }); //end shown
-    }); //end each
+        });
+    });
     // Automatically click the first tab on page load
     $("a[data-toggle=tab]").first().click();
 
@@ -340,7 +339,7 @@ $(document).ready(function () {
                 'height': '240px'
             });
         } else {
-             $("#common-result-msg").css({
+            $("#common-result-msg").css({
                 'width': '900px',
                 'height': '500px'
             });
