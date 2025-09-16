@@ -2,7 +2,7 @@
 
 > ⚠️ The old Python2 version is available in branch [portal-python2](https://github.com/wenchy/portal/tree/portal-python2).
 
-A simple yet powerful Python3 mirco-framework for GM (Game Maker).
+A simple yet powerful Python3 mirco-framework for GM (Game Master).
 
 ## Requirements
 
